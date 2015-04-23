@@ -1,0 +1,53 @@
+		# робочій варіант з поворотом навколо умовної точки десь внизу екрану
+		# .transform "t#{ (window.innerWidth - cardWidth) / 2 },
+		# #{window.innerHeight / 2 - cardHeight / 2},
+		# R#{angle * i - angle * numCards / 2 + angle / 2 },#{window.innerWidth / 2},1000"
+
+
+		це робочий (майже) варіант з розкладанням карт руки віялом із зміщенням карти під
+		курсором уверх на 100 пікселів, повертанням назад після виходу миші, та дрегом,
+		який просто повертає карту на місце після завершення, усе з анімаціями. проблеми:
+		1. при тяганні карти не з максимальним z індексом, вона знаходиться за картами
+			із більшим значенням такого індекса, отже спрацьовують для них оброблювачі
+			hover
+		2.	по завершенню дрега карта поветається в позицію, де була на момент mousein
+				лише при додатковому русі мишою повертається на місце
+
+		робити з цим поки що нічого не буду, т.я. мається на увазі хід картою просто
+		по click, а по hover - анімація інших (роздвинуте віяло по обох боках карти
+		під мишою)
+
+
+for card, i in tenCards
+
+	fanTransform = "R#{angle * i - angle * numCards / 2 + angle / 2},#{ (window.innerWidth - cardWidth) / 2 + cardWidth * .25 },
+		#{window.innerHeight / 2 + cardHeight / 2},
+		t#{ (window.innerWidth - cardWidth) / 2 },
+		#{window.innerHeight / 2 - cardHeight / 2}"
+
+	cardGroup = hand.g()
+
+		# робочій варіант із поворотом навколо нижнього лівого кута першої карти із зміщенням
+		# центру обертання на чверть ширини карти
+	cardGroup
+		.transform fanTransform
+		.data 'curTrans', fanTransform
+		.add card.pic
+		.hover( (-> @stop().animate transform: "#{@data 'curTrans'}t0,-100", 1000, mina.elastic),
+						(-> @stop().animate transform: "#{@data 'curTrans'}t0,0", 400, mina.backout) )
+		.drag(
+			((dx, dy, x, y)->
+				# @transform "#{@data 'curTrans'}t0,0"
+				@stop().transform "t#{x - cardWidth / 2 },#{y - cardHeight / 2 }"
+				),
+			(->
+				console.log 'drag start...'
+				),
+			(->
+				# @dispatchEvent 'mouseout'
+				@animate transform: "#{@data 'curTrans'}", 400, mina.backout
+				console.log 'drag end...'
+				)
+			)
+
+	handNorth.push cardGroup
