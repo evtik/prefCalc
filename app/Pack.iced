@@ -1,5 +1,4 @@
 class Pack
-
 	constructor: (cb) ->
 		@cardNames =	[ '7c', '8c', '9c', '10c', 'jc', 'qc', 'kc', 'ac',
 										'7d', '8d', '9d', '10d', 'jd', 'qd', 'kd', 'ad',
@@ -16,5 +15,13 @@ Pack::getPack = (cb) ->
 		pack.push suit: c.slice(-1), value: c.slice(-3, -1), pic: cardPic
 	@cards = pack
 	cb()
+
+Pack::shuffle = ->
+	m = @cards.length
+	while m
+		i = Math.floor (Math.random() * m--)
+		t = @cards[m]
+		@cards[m] = @cards[i]
+		@cards[i] = t
 
 module.exports = Pack

@@ -1,7 +1,5 @@
-shuffle = (require './utils').shuffle
 cardSorter = (require "./utils").cardSorter
 Pack = require './Pack'
-iced = require('iced-coffee-script').iced
 
 hand = Snap window.innerWidth, window.innerHeight
 
@@ -13,17 +11,10 @@ window.addEventListener 'resize', ->
 cardWidth = 224.19670
 cardHeight = 312.79669
 
-# await getPack defer cards
-# console.log "кількість карт: #{cards.length}"
-# cards = shuffle cards
-
 await pack = new Pack defer cards
-console.log pack
-# setTimeout (-> console.log cards), 4000
-cards = pack.cards
-cards = shuffle cards
 
-tenCards = cards.splice 20, 10
+pack.shuffle()
+tenCards = pack.cards.splice 20, 10
 tenCards.sort cardSorter
 numCards = tenCards.length
 angle = 15
