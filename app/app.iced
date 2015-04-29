@@ -8,11 +8,12 @@ window.addEventListener 'resize', ->
 		width: window.innerWidth
 		height: window.innerHeight
 
-cardWidth = 224.19670
-cardHeight = 312.79669
+# cardWidth = 224.19670
+# cardHeight = 312.79669
 
 await pack = new Pack defer cards
-
+cardWidth = pack.cardWidth
+cardHeight = pack.cardHeight
 pack.shuffle()
 tenCards = pack.cards.splice 20, 10
 tenCards.sort cardSorter

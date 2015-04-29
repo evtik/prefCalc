@@ -14,6 +14,8 @@ Pack::getPack = (cb) ->
 		await Snap.load "cards/#{c}.svg", defer cardPic
 		pack.push suit: c.slice(-1), value: c.slice(-3, -1), pic: cardPic
 	@cards = pack
+	@cardWidth = @cards[0].pic.node.children[0].attributes.width.value
+	@cardHeight = @cards[0].pic.node.children[0].attributes.height.value
 	cb()
 
 Pack::shuffle = ->
