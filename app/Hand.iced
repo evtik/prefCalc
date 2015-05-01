@@ -7,6 +7,8 @@ Hand::sortHand = ->
 
 Hand::renderHand = (@pack, isInitial) ->
 	self = @
+	angle = 15
+
 	if isInitial
 		@cardRotations = []
 		@handGroup = @table.g()
@@ -29,6 +31,17 @@ Hand::renderHand = (@pack, isInitial) ->
 									@stop().animate transform: "#{@data 'currentTransform'}t0,0", 200, mina.backout
 								)
 							)
+
+			@handGroup.add cardGroup
+
+	for i, el of @handGroup when not Number.isNaN +i
+		rotationAngle = angle * (i - @cards.length / 2 + .5)
+		cardRotation = "r#{rotationAngle}"
+		@cardRotations.push rotationAngle
+		cardRotationCenter = ",#{@pack.cardWidth * .25},#{@pack.cardHeight}"
+		nextTransform = "#{el.data 'currentTransform'}#{cardRotation}#{cardRotationCenter}"
+		el.stop().animate transform: nextTransform, 2000, mina.elastic
+		el.data 'currentTransform', nextTransform
 
 module.exports = Hand
 
