@@ -2,8 +2,18 @@ class Hand
 	constructor: (@table, @pack, @cards, @centerX, @centerY, @seat, @isBlind, @isWidow) ->
 		@renderHand @pack, yes
 
-Hand::sortHand = ->
+Hand::sortHand = (current,next) ->
 	# sorts hand cards
+	sortSuits = ['s', 'd', 'c', 'h']
+	sortValues = ['7', '8', '9', '10', 'j', 'q', 'k', 'a']
+	if sortSuits.indexOf(current.suit) < sortSuits.indexOf(next.suit)
+		return -1
+	if sortSuits.indexOf(current.suit) > sortSuits.indexOf(next.suit)
+		return 1
+	if sortValues.indexOf(current.value) < sortValues.indexOf(next.value)
+		return 1
+	if sortValues.indexOf(current.value) > sortValues.indexOf(next.value)
+		return -1
 
 Hand::renderHand = (@pack, isInitial) ->
 	self = @
@@ -12,6 +22,7 @@ Hand::renderHand = (@pack, isInitial) ->
 	if isInitial
 		@cardRotations = []
 		@handGroup = @table.g()
+		@cards.sort @sortHand
 
 		upperRect = @table
 			.rect 0, 0, @pack.cardWidth, @pack.cardHeight

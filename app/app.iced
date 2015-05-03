@@ -1,4 +1,3 @@
-cardSorter = (require "./utils").cardSorter
 Pack = require './Pack'
 Hand = require './Hand'
 
