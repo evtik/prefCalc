@@ -12,17 +12,13 @@ Array::exists = (val) ->
 
 class Hand
 	constructor: (@table, @pack, @cards, @centerX, @centerY, @seat, @isBlind, @isWidow) ->
-		@sortSuits = ['s', 'd', 'c', 'h']
+		# @sortSuits = ['s', 'd', 'c', 'h']
 		@sortValues = ['7', '8', '9', '10', 'j', 'q', 'k', 'a']
 		do @getSortOrders
 		@renderHand yes
 
 Hand::getSortOrders = ->
 	sameColors = ['d', 'h']
-	# red suits array
-	reds = ['d', 'h']
-	# black suits array
-	blacks = ['c', 's']
 	# raw hand's suits array
 	currentSuits = []
 	for c, i in @cards
@@ -44,7 +40,11 @@ Hand::getSortOrders = ->
 		else
 			@sortedUniqueSuits.push uniqueSuits[0], uniqueSuits[2], uniqueSuits[1]
 			@sortedUniqueSuits.push uniqueSuits[3] if uniqueSuits.length is 4
-	console.log @sortedUniqueSuits
+	if Math.floor Math.random() * 2
+		arr = @sortValues.slice()
+		@ranDirectionValues = arr.reverse()
+	else
+		@ranDirectionValues = @sortValues
 
 Hand::sortHand = (sortSuits, sortValues) ->
 	(current, next) ->
@@ -65,7 +65,7 @@ Hand::renderHand = (isInitial) ->
 	if isInitial
 		@cardRotations = []
 		@handGroup = @table.g()
-		@cards.sort @sortHand @sortedUniqueSuits, @sortValues
+		@cards.sort @sortHand @sortedUniqueSuits, @ranDirectionValues
 
 		for card, i in @cards
 			upperRect = @table
