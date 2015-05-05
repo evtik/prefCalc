@@ -12,21 +12,16 @@ Array::exists = (val) ->
 
 class Hand
 	constructor: (@table, @pack, @cards, @centerX, @centerY, @seat, @isBlind, @isWidow) ->
-		# @sortSuits = ['s', 'd', 'c', 'h']
 		@sortValues = ['7', '8', '9', '10', 'j', 'q', 'k', 'a']
 		do @getSortOrders
 		@renderHand yes
 
 Hand::getSortOrders = ->
 	sameColors = ['d', 'h']
-	# raw hand's suits array
-	currentSuits = []
-	for c, i in @cards
-		currentSuits.push c.suit
-	# getting unique hand's suits array
+	currentSuits = (card.suit for card in @cards)
 	uniqueSuits = currentSuits.unique()
-	# placeholder for its sorted version
 	@sortedUniqueSuits = []
+
 	if uniqueSuits.length <= 2
 		@sortedUniqueSuits = uniqueSuits
 	else
@@ -35,11 +30,12 @@ Hand::getSortOrders = ->
 			if checks[1] is not checks[2]
 				@sortedUniqueSuits = uniqueSuits
 			else
-				@sortedUniqueSuits.push uniqueSuits[1], uniqueSuits[0], uniqueSuits[2]
-				@sortedUniqueSuits.push uniqueSuits[3] if uniqueSuits.length is 4
+				@sortedUniqueSuits.push uniqueSuits[1], uniqueSuits[0], uniqueSuits[2], uniqueSuits[3]
+				# @sortedUniqueSuits.push uniqueSuits[3] if uniqueSuits.length is 4
 		else
-			@sortedUniqueSuits.push uniqueSuits[0], uniqueSuits[2], uniqueSuits[1]
-			@sortedUniqueSuits.push uniqueSuits[3] if uniqueSuits.length is 4
+			@sortedUniqueSuits.push uniqueSuits[0], uniqueSuits[2], uniqueSuits[1], uniqueSuits[3]
+			# @sortedUniqueSuits.push uniqueSuits[3] if uniqueSuits.length is 4
+
 	if Math.floor Math.random() * 2
 		arr = @sortValues.slice()
 		@ranDirectionValues = arr.reverse()
@@ -48,7 +44,6 @@ Hand::getSortOrders = ->
 
 Hand::sortHand = (sortSuits, sortValues) ->
 	(current, next) ->
-	# s{orts hand cards
 		if sortSuits.indexOf(current.suit) < sortSuits.indexOf(next.suit)
 			return -1
 		if sortSuits.indexOf(current.suit) > sortSuits.indexOf(next.suit)
