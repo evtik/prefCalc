@@ -1,20 +1,12 @@
-Array::unique = ->
-	n = {}
-	r = []
-	for el, i in @
-		unless n[@[i]]
-			n[@[i]] = on
-			r.push @[i]
-	r
-
-Array::exists = (val) ->
-	if @indexOf(val) >= 0 then yes else no
+require './Array_utils'
 
 class Hand
 	constructor: (@table, @pack, @cards, @centerX, @centerY, @seat, @isBlind, @isWidow) ->
 		@sortValues = ['7', '8', '9', '10', 'j', 'q', 'k', 'a']
 		do @getSortOrders
 		@renderHand yes
+
+Hand::resizeHand = ->
 
 Hand::getSortOrders = ->
 	sameColors = ['d', 'h']
@@ -89,7 +81,7 @@ Hand::renderHand = (isInitial) ->
 		@cardRotations.push rotationAngle
 		cardRotationCenter = ",#{@pack.cardWidth * .25},#{@pack.cardHeight}"
 		nextTransform = "#{el.data 'currentTransform'}#{cardRotation}#{cardRotationCenter}"
-		el.stop().animate transform: nextTransform, 2000, mina.elastic
+		el.stop().animate transform: nextTransform, 500, mina.backout
 		el.data 'currentTransform', nextTransform
 
 module.exports = Hand
