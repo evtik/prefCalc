@@ -1,7 +1,7 @@
 require './Array_utils'
 
 class Hand
-	constructor: (@table, @pack, @cards, @centerX, @centerY, @seat, @isBlind, @isWidow) ->
+	constructor: (@table, @pack, @cards, @seat, @isBlind, @isWidow) ->
 		@sortValues = ['7', '8', '9', '10', 'j', 'q', 'k', 'a']
 		do @getSortOrders
 		@renderHand yes
@@ -51,22 +51,22 @@ Hand::renderHand = (isInitial) ->
 
 	if isInitial
 		@cardRotations = []
-		@handGroup = @table.g()
+		@handGroup = @table.snapArea.g()
 		@cards.sort @sortHand @sortedUniqueSuits, @ranDirectionValues
 
 		for card, i in @cards
-			upperRect = @table
+			upperRect = @table.snapArea
 			.rect 0, 0, @pack.cardWidth, @pack.cardHeight
 			.attr fill: 'transparent', strokeWidth: 0, opacity: 0.1
 
 			cardGroup = @handGroup.g()
 			cardGroup
-				.data 'currentTransform', "t#{@centerX},#{@centerY}"
+				.data 'currentTransform', "s#{@table.cardSizeRatio}t#{@table.coords[@seat].x},#{@table.coords[@seat].y}"
 				.transform cardGroup.data 'currentTransform'
 				.add @cards[i].pic
 				.add upperRect
 				.hover( (->
-									@stop().animate transform: "#{@data 'currentTransform'}t0,#{-self.pack.cardHeight/2}", 200, mina.elastic
+									@stop().animate transform: "#{@data 'currentTransform'}t0,#{-self.table.cardHeight/2}", 200, mina.elastic
 								),
 								(->
 									@stop().animate transform: "#{@data 'currentTransform'}t0,0", 200, mina.backout
@@ -79,8 +79,8 @@ Hand::renderHand = (isInitial) ->
 		rotationAngle = angle * (i - @cards.length / 2 + .5)
 		cardRotation = "r#{rotationAngle}"
 		@cardRotations.push rotationAngle
-		cardRotationCenter = ",#{@pack.cardWidth * .25},#{@pack.cardHeight}"
-		nextTransform = "#{el.data 'currentTransform'}#{cardRotation}#{cardRotationCenter}"
+		cardRotationCenter = ",#{@table.coords[@seat].rotX},#{@table.coords[@seat].rotY}"
+		nextTransform = "s#{@table.cardSizeRatio}#{el.data 'currentTransform'}#{cardRotation}#{cardRotationCenter}"
 		el.stop().animate transform: nextTransform, 500, mina.backout
 		el.data 'currentTransform', nextTransform
 
