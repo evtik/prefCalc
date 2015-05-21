@@ -6,8 +6,6 @@ class Hand
 		do @getSortOrders
 		@renderHand yes
 
-Hand::resizeHand = ->
-
 Hand::getSortOrders = ->
 	sameColors = ['d', 'h']
 	currentSuits = (card.suit for card in @cards)
