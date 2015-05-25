@@ -1,36 +1,34 @@
 class Table
 	constructor: (width, height, @pack) ->
-		@getCoords width, height, @pack.cardWidth
+		@snapArea = Snap()
+		@getCoords width, height
 
 Table::getCoords = (width, height) ->
-	@prevWidth = @width
-
-	@width = width
-	@height = height
 	# @width = if width > 640 then width else 640
 	# @height = if height > 480 then height else 480
 	# console.log "#{@width}x#{@height}"
+	@width = width
+	@height = height
 
-	if @snapArea then @snapArea.attr width: @width, height: @height
-	else
-		@snapArea = Snap @width, @height
+	console.log @snapArea
 
-	if @cardSizeRatio
-		@cardSizeRatio = @width / @prevWidth
-		@cardWidth *= @cardSizeRatio
-		@cardHeight *= @cardSizeRatio
-	else
-		@cardWidth = @width * 0.12
-		@cardSizeRatio = @cardWidth / @pack.cardWidth
-		@cardHeight = @pack.cardHeight * @cardSizeRatio
+	# if @snapArea then @snapArea.attr width: @width, height: @height
+	# else
+	# 	@snapArea = Snap @width, @height
+	# @snapArea.attr width: @width, height: @height
+
+	@cardWidth = @width * 0.12
+	# @cardHeight = @pack.cardHeight * @cardWidth / @pack.cardWidth
+	@cardSizeRatio = @cardWidth / @pack.cardWidth
+	@cardHeight = @pack.cardHeight * @cardSizeRatio
 	# console.log "card #{@cardWidth}x#{@cardHeight}"
 
 	@coords =
 						center:
 							x: (@width - @cardWidth) / 2
 							y: (@height - @cardHeight) / 2
-							rotX: @cardWidth / 4
-							rotY: @cardHeight
+							rotX: @pack.cardWidth / 4
+							rotY: @pack.cardHeight
 						# south:
 						# 	x: 5
 						# 	y: 6

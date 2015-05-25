@@ -54,17 +54,14 @@ Hand::renderHand = (isInitial) ->
 
 		for card, i in @cards
 			upperRect = @table.snapArea
-			.rect 0, 0, @pack.cardWidth, @pack.cardHeight
-			.attr fill: 'transparent', strokeWidth: 0, opacity: 0.1
-
+			.rect 0, 0, @pack.cardWidth, @pack.cardHeight, 10, 10
+			.attr fill: 'transparent', strokeWidth: 0, opacity: 0.5
 			cardGroup = @handGroup.g()
 			cardGroup
-				.data 'currentTransform', "s#{@table.cardSizeRatio}t#{@table.coords[@seat].x},#{@table.coords[@seat].y}"
-				.transform cardGroup.data 'currentTransform'
 				.add @cards[i].pic
 				.add upperRect
 				.hover( (->
-									@stop().animate transform: "#{@data 'currentTransform'}t0,#{-self.table.cardHeight/2}", 200, mina.elastic
+									@stop().animate transform: "#{@data 'currentTransform'}t0,#{-self.pack.cardHeight/2}", 200, mina.elastic
 								),
 								(->
 									@stop().animate transform: "#{@data 'currentTransform'}t0,0", 200, mina.backout
@@ -77,10 +74,16 @@ Hand::renderHand = (isInitial) ->
 		rotationAngle = angle * (i - @cards.length / 2 + .5)
 		cardRotation = "r#{rotationAngle}"
 		@cardRotations.push rotationAngle
+		el.data 'currentTransform', "t#{@table.coords[@seat].x},#{@table.coords[@seat].y}s#{@table.cardSizeRatio},0,0"
+		el.transform el.data 'currentTransform'
+		console.log el.data 'currentTransform'
 		cardRotationCenter = ",#{@table.coords[@seat].rotX},#{@table.coords[@seat].rotY}"
-		nextTransform = "s#{@table.cardSizeRatio}#{el.data 'currentTransform'}#{cardRotation}#{cardRotationCenter}"
+		nextTransform = "#{el.data 'currentTransform'}#{cardRotation}#{cardRotationCenter}"
 		el.stop().animate transform: nextTransform, 500, mina.backout
 		el.data 'currentTransform', nextTransform
+		# el.transform nextTransform
+		# el.data 'currentTransform', nextTransform
+
 
 module.exports = Hand
 
