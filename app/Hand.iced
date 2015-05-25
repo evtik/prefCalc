@@ -45,7 +45,7 @@ Hand::sortHand = (sortSuits, sortValues) ->
 
 Hand::renderHand = (isInitial) ->
 	self = @
-	angle = 15
+	angle = 12
 
 	if isInitial
 		@cardRotations = []
@@ -77,7 +77,7 @@ Hand::renderHand = (isInitial) ->
 		el.data 'currentTransform', "t#{@table.coords[@seat].x},#{@table.coords[@seat].y}s#{@table.cardSizeRatio},0,0"
 		el.transform el.data 'currentTransform'
 		console.log el.data 'currentTransform'
-		cardRotationCenter = ",#{@table.coords[@seat].rotX},#{@table.coords[@seat].rotY}"
+		cardRotationCenter = ",#{@table.coords.rotX},#{@table.coords.rotY}"
 		nextTransform = "#{el.data 'currentTransform'}#{cardRotation}#{cardRotationCenter}"
 		el.stop().animate transform: nextTransform, 500, mina.backout
 		el.data 'currentTransform', nextTransform

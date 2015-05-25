@@ -14,20 +14,28 @@ showMe = ->
 	, card rot center #{Math.floor table.coords.center.rotX} x #{Math.floor table.coords.center.rotY}"
 
 table = new Table window.innerWidth, window.innerHeight, pack
-showMe()
+# showMe()
 
 pack.shuffle()
-tenCards = pack.cards.splice 20, 10
-# handCenterX = (window.innerWidth - pack.cardWidth) / 2
-# handCenterY = (window.innerHeight - pack.cardHeight) / 2
+table.hands = []
+eastCards = pack.cards.splice 0, 10
+southCards = pack.cards.splice 0, 10
+westCards = pack.cards.splice 0, 10
+northCards = pack.cards.splice 0, 2
 
-handSouth = new Hand table, pack, tenCards, "center"
-table.snapArea.g handSouth.handGroup
+table.hands.push new Hand table, pack, eastCards, "east"
+table.hands.push new Hand table, pack, southCards, "south"
+table.hands.push new Hand table, pack, westCards, "west"
+table.hands.push new Hand table, pack, northCards, "north"
+
+for hand, i in table.hands
+	table.snapArea.g hand.handGroup
 
 window.addEventListener 'resize', ->
 	table.getCoords window.innerWidth, window.innerHeight
-	showMe()
-	handSouth.renderHand()
+	# showMe()
+	for hand, i in table.hands
+		hand.renderHand()
 
 # rect1 = table.snapArea.rect 500, 200, 50, 50, 3, 3
 # rect1.attr fill: 'transparent', stroke: 'red', strokeWidth: 2

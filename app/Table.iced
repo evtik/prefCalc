@@ -24,31 +24,24 @@ Table::getCoords = (width, height) ->
 	# console.log "card #{@cardWidth}x#{@cardHeight}"
 
 	@coords =
-						center:
+						rotX: @pack.cardWidth / 4
+						rotY: @pack.cardHeight
+						# center:
+						# 	x: (@width - @cardWidth) / 2
+						# 	y: (@height - @cardHeight) / 2
+
+						south:
 							x: (@width - @cardWidth) / 2
+							y: (@height - @cardHeight) / 7 * 5.5
+						west:
+							x: (@width - @cardWidth) / 7
 							y: (@height - @cardHeight) / 2
-							rotX: @pack.cardWidth / 4
-							rotY: @pack.cardHeight
-						# south:
-						# 	x: 5
-						# 	y: 6
-						# 	rotX: 1
-						# 	rotY: 2
-						# west:
-						# 	x: 5
-						# 	y: 6
-						# 	rotX: 1
-						# 	rotY: 2
-						# north:
-						# 	x: 7
-						# 	y: 8
-						# 	rotX: 1
-						# 	rotY: 2
-						# east:
-						# 	x: 10
-						# 	y: 11
-						# 	rotX: 1
-						# 	rotY: 2
+						north:
+							x: (@width - @cardWidth) / 2
+							y: (@height - @cardHeight) / 7
+						east:
+							x: (@width - @cardWidth) / 7 * 5.5
+							y: (@height - @cardHeight) / 2
 						# spades:
 						# 	x: 15
 						# 	y: 18
