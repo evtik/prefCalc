@@ -1,4 +1,5 @@
-require './Array_utils'
+require './array-utils'
+cardSorter = require './card-sorter'
 
 class Hand
 	constructor: (@table, @pack, @cards, @seat, @isBlind, @isWidow) ->
@@ -32,17 +33,6 @@ Hand::getSortOrders = ->
 	else
 		@ranDirectionValues = @sortValues
 
-Hand::sortHand = (sortSuits, sortValues) ->
-	(current, next) ->
-		if sortSuits.indexOf(current.suit) < sortSuits.indexOf(next.suit)
-			return -1
-		if sortSuits.indexOf(current.suit) > sortSuits.indexOf(next.suit)
-			return 1
-		if sortValues.indexOf(current.value) < sortValues.indexOf(next.value)
-			return 1
-		if sortValues.indexOf(current.value) > sortValues.indexOf(next.value)
-			return -1
-
 Hand::renderHand = (isInitial) ->
 	self = @
 	angle = 12
@@ -50,7 +40,7 @@ Hand::renderHand = (isInitial) ->
 	if isInitial
 		@cardRotations = []
 		@handGroup = @table.snapArea.g()
-		@cards.sort @sortHand @sortedUniqueSuits, @ranDirectionValues
+		@cards.sort cardSorter @sortedUniqueSuits, @ranDirectionValues
 
 		for card, i in @cards
 			upperRect = @table.snapArea
@@ -61,10 +51,12 @@ Hand::renderHand = (isInitial) ->
 				.add @cards[i].pic
 				.add upperRect
 				.hover( (->
-									@stop().animate transform: "#{@data 'currentTransform'}t0,#{-self.pack.cardHeight * .4}", 200, mina.elastic
+									@stop().animate transform: "#{@data 'currentTransform'}
+										t0,#{-self.pack.cardHeight * .4}", 200, mina.elastic
 								),
 								(->
-									@stop().animate transform: "#{@data 'currentTransform'}t0,0", 200, mina.backout
+									@stop().animate transform: "#{@data 'currentTransform'}
+										t0,0", 200, mina.backout
 								)
 							)
 
@@ -74,10 +66,12 @@ Hand::renderHand = (isInitial) ->
 		rotationAngle = angle * (i - @cards.length / 2 + .5)
 		cardRotation = "r#{rotationAngle}"
 		@cardRotations.push rotationAngle
-		el.data 'currentTransform', "t#{@table.coords[@seat].x},#{@table.coords[@seat].y}s#{@table.cardSizeRatio},0,0"
+		el.data 'currentTransform', "t#{@table.coords[@seat].x}
+			,#{@table.coords[@seat].y}s#{@table.cardSizeRatio},0,0"
 		el.transform el.data 'currentTransform'
 		cardRotationCenter = ",#{@table.coords.rotX},#{@table.coords.rotY}"
-		nextTransform = "#{el.data 'currentTransform'}#{cardRotation}#{cardRotationCenter}"
+		nextTransform = "#{el.data 'currentTransform'}#{cardRotation}
+			#{cardRotationCenter}"
 		el.stop().animate transform: nextTransform, 500, mina.backout
 		el.data 'currentTransform', nextTransform
 

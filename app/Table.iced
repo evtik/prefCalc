@@ -22,6 +22,8 @@ Table::getCoords = (width, height) ->
 	# console.log "card #{@cardWidth}x#{@cardHeight}"
 
 	@coords =
+						# чому саме @pack.cardWidth, а не
+						# @cardWidth для мене загадка
 						rotX: @pack.cardWidth / 4
 						rotY: @pack.cardHeight
 						# center:
@@ -44,9 +46,8 @@ Table::getCoords = (width, height) ->
 							x: (@width - @cardWidth * .8) / 10 * 8.2
 							y: (@height - @cardHeight) / 2
 						lowerRow:
-							x: 20
-							y: @height - @cardHeight - 20
-
+							x: ((@width - @cardWidth) / (@pack.cards.length + 1)) / @cardSizeRatio
+							y: @height - @cardHeight * 1.175
 						# spades:
 						# 	x: 15
 						# 	y: 18

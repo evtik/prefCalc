@@ -38,9 +38,8 @@ for hand, i in table.hands
 window.addEventListener 'resize', ->
 	table.getCoords window.innerWidth, window.innerHeight
 	showMe()
-	console.log 'resize fires'
-	# for hand, i in table.hands
-	# 	hand.renderHand()
+	for hand, i in table.hands
+		hand.renderHand()
 	table.cardRow.renderCardRow()
 
 # rect1 = table.snapArea.rect 500, 200, 50, 50, 3, 3
