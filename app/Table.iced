@@ -10,14 +10,12 @@ Table::getCoords = (width, height) ->
 	@width = width
 	@height = height
 
-	console.log @snapArea
-
 	# if @snapArea then @snapArea.attr width: @width, height: @height
 	# else
 	# 	@snapArea = Snap @width, @height
 	# @snapArea.attr width: @width, height: @height
 
-	@cardWidth = @width * 0.12
+	@cardWidth = @width * 0.11
 	# @cardHeight = @pack.cardHeight * @cardWidth / @pack.cardWidth
 	@cardSizeRatio = @cardWidth / @pack.cardWidth
 	@cardHeight = @pack.cardHeight * @cardSizeRatio
@@ -30,18 +28,25 @@ Table::getCoords = (width, height) ->
 						# 	x: (@width - @cardWidth) / 2
 						# 	y: (@height - @cardHeight) / 2
 
+						# усі координати підбиралися емпірично, т.я.
+						# обертання кожної карти у "віялі" робиться
+						# навколо "несиметричної" точки
 						south:
 							x: (@width - @cardWidth) / 2
-							y: (@height - @cardHeight) / 7 * 5.5
-						west:
-							x: (@width - @cardWidth) / 7
-							y: (@height - @cardHeight) / 2
+							y: (@height - @cardHeight * 1.2) / 10 * 8.62
 						north:
 							x: (@width - @cardWidth) / 2
-							y: (@height - @cardHeight) / 7
-						east:
-							x: (@width - @cardWidth) / 7 * 5.5
+							y: (@height - @cardHeight * 1.2) / 10 * 1.38
+						west:
+							x: (@width - @cardWidth * .8) / 10 * 1.8
 							y: (@height - @cardHeight) / 2
+						east:
+							x: (@width - @cardWidth * .8) / 10 * 8.2
+							y: (@height - @cardHeight) / 2
+						lowerRow:
+							x: 20
+							y: @height - @cardHeight - 20
+
 						# spades:
 						# 	x: 15
 						# 	y: 18
