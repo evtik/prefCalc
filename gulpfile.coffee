@@ -21,6 +21,7 @@ gulp.task 'bundle', ->
 		d = require('domain').create()
 		d.on 'error', (err) ->
 			gutil.log gutil.colors.red "Browserify compile error: ",
+				gutil.beep()
 				gutil.colors.yellow err.message,
 				gutil.colors.red "in line",
 				gutil.colors.yellow err.line,

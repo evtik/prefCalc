@@ -20,6 +20,8 @@ Table::getCoords = (width, height) ->
 	@cardSizeRatio = @cardWidth / @pack.cardWidth
 	@cardHeight = @pack.cardHeight * @cardSizeRatio
 	# console.log "card #{@cardWidth}x#{@cardHeight}"
+	# rowLength = if @cardRow then @cardRow.length else @pack.cards.length
+	# console.log rowLength
 
 	@coords =
 						# чому саме @pack.cardWidth, а не
