@@ -24,14 +24,24 @@ CardRow::renderCardRow = ->
 				.add upperRect
 				.click ->
 					picked = self.cards.splice (@data 'rowIndex'), 1
+					# aninClone - це копія карти, яка видаляється із ряду,
+					# для симуляція руху по столу від ряду до руки
 					animClone = @.clone()
-					animToHand = "t#{self.table.coords.north.x},#{self.table.coords.north.x}"
-					animClone.stop().animate transform: "t800,500", 5000, mina.backout
-					# console.log @
-					# setTimeout (-> console.log @), 1
-					self.table.handNorth.cards.push picked[0]
-					self.table.handNorth.renderHand()
-					self.renderCardRow()
+					animClone.transform @transform().string
+					@.remove()
+					self.table.snapArea.add animClone
+					animToHand = "t#{self.table.coords.north.x},
+						#{self.table.coords.north.y}
+						s#{self.table.cardSizeRatio},0,0"
+					animClone.stop().animate transform: animToHand, 300, mina.backout
+					setTimeout (->
+						animClone.remove()
+						self.table.handNorth.cards.push picked[0]
+						self.table.handNorth.renderHand()
+						self.renderCardRow()
+						), 200
+
+
 			@cardRowGroup.add cardGroup
 
 		for i, el of @cardRowGroup when not Number.isNaN +i
