@@ -2,6 +2,7 @@ class Table
 	constructor: (width, height, @pack) ->
 		@snapArea = Snap()
 		@getCoords width, height
+		@cardRow = {}
 
 Table::getCoords = (width, height) ->
 	# @width = if width > 640 then width else 640
@@ -19,18 +20,12 @@ Table::getCoords = (width, height) ->
 	# @cardHeight = @pack.cardHeight * @cardWidth / @pack.cardWidth
 	@cardSizeRatio = @cardWidth / @pack.cardWidth
 	@cardHeight = @pack.cardHeight * @cardSizeRatio
-	# console.log "card #{@cardWidth}x#{@cardHeight}"
-	# rowLength = if @cardRow then @cardRow.length else @pack.cards.length
-	# console.log rowLength
 
 	@coords =
 						# чому саме @pack.cardWidth, а не
 						# @cardWidth для мене загадка
 						rotX: @pack.cardWidth / 4
 						rotY: @pack.cardHeight
-						# center:
-						# 	x: (@width - @cardWidth) / 2
-						# 	y: (@height - @cardHeight) / 2
 
 						# усі координати підбиралися емпірично, т.я.
 						# обертання кожної карти у "віялі" робиться
@@ -47,23 +42,8 @@ Table::getCoords = (width, height) ->
 						east:
 							x: (@width - @cardWidth * .8) / 10 * 8.2
 							y: (@height - @cardHeight) / 2
-						lowerRow:
-							x: ((@width - @cardWidth) / (@pack.cards.length + 1)) / @cardSizeRatio
-							y: @height - @cardHeight * 1.175
-						# spades:
-						# 	x: 15
-						# 	y: 18
-						# clubs:
-						# 	x: 15
-						# 	y: 18
-						# diamonds:
-						# 	x: 15
-						# 	y: 18
-						# hearts:
-						# 	x: 15
-						# 	y: 18
-						# cardSize:
-						# 	width: 10
-						# 	height: 20
+						# lowerRow:
+						# 	x: ((@width - @cardWidth) / (rowLength + 1)) / @cardSizeRatio
+						# 	y: @height - @cardHeight * 1.175
 
 module.exports = Table

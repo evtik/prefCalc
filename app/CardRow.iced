@@ -24,17 +24,27 @@ CardRow::renderCardRow = ->
 				.add upperRect
 				.click ->
 					picked = self.cards.splice (@data 'rowIndex'), 1
+					animClone = @.clone()
+					animToHand = "t#{self.table.coords.north.x},#{self.table.coords.north.x}"
+					animClone.stop().animate transform: "t800,500", 5000, mina.backout
+					# console.log @
+					# setTimeout (-> console.log @), 1
 					self.table.handNorth.cards.push picked[0]
 					self.table.handNorth.renderHand()
 					self.renderCardRow()
 			@cardRowGroup.add cardGroup
 
 		for i, el of @cardRowGroup when not Number.isNaN +i
-			shift = @table.coords.lowerRow.x * i
+			# наступні 2 рядки не можу винести у клас Table
+			# всередині цього класу чомусь немає доступу
+			# до зовні доданих нових властивостей
+			cardSpacingX = ((@table.width - @table.cardWidth) / (@cards.length + 1)) / @table.cardSizeRatio
+			cardSpacingY = @table.height - @table.cardHeight * 1.175
+			shift = cardSpacingX * i
 			@cardShifts.push shift
-			el.data 'currentTransform', "t#{@table.coords.lowerRow.x *
+			el.data 'currentTransform', "t#{cardSpacingX *
 				@table.cardSizeRatio}
-				,#{@table.coords.lowerRow.y}
+				,#{cardSpacingY}
 				s#{@table.cardSizeRatio},0,0"
 			el.transform el.data 'currentTransform'
 			nextTransform = "#{el.data 'currentTransform'}t#{shift},0"

@@ -20,13 +20,11 @@ table = new Table window.innerWidth, window.innerHeight, pack
 # pack.shuffle()
 
 table.cardRow = new CardRow table, pack
-table.snapArea.add table.cardRow.cardRowGroup
+# table.snapArea.add table.cardRow.cardRowGroup
 
 table.handNorth = new Hand table, pack, 'north'
-
 
 window.addEventListener 'resize', ->
 	table.getCoords window.innerWidth, window.innerHeight
 	table.handNorth.renderHand()
 	table.cardRow.renderCardRow()
-	console.log table.rowLength
