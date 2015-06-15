@@ -12,6 +12,7 @@ CardRow::renderCardRow = ->
 		@cardRowGroup.clear()
 		self = @
 		@cardShifts = []
+		@cards.sort cardSorter ['s', 'd', 'c', 'h']
 		for card, i in @cards
 			upperRect = @table.snapArea
 				.rect 0, 0, @pack.cardWidth, @pack.cardHeight, 10, 10
@@ -25,22 +26,25 @@ CardRow::renderCardRow = ->
 				.click ->
 					picked = self.cards.splice (@data 'rowIndex'), 1
 					# aninClone - це копія карти, яка видаляється із ряду,
-					# для симуляція руху по столу від ряду до руки
-					animClone = @.clone()
-					animClone.transform @transform().string
-					@.remove()
+					# для симуляції руху по столу від ряду до руки
+					# можна, звичайно, використати не клон, а поточний
+					# екземпляр, але він анімується "під" карти руки,
+					# що не дуже естетично
+					animClone = @clone()
+					# animClone.transform @transform().string
+					@remove()
+					# без цього рядка клон додається "під" ряд і руку
 					self.table.snapArea.add animClone
 					animToHand = "t#{self.table.coords.north.x},
 						#{self.table.coords.north.y}
 						s#{self.table.cardSizeRatio},0,0"
-					animClone.stop().animate transform: animToHand, 300, mina.backout
+					animClone.stop().animate transform: animToHand, 180, mina.backout
 					setTimeout (->
 						animClone.remove()
 						self.table.handNorth.cards.push picked[0]
 						self.table.handNorth.renderHand()
 						self.renderCardRow()
 						), 200
-
 
 			@cardRowGroup.add cardGroup
 

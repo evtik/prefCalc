@@ -66,6 +66,22 @@ Hand::renderHand = ->
 										t0,0", 200, mina.backout
 								)
 							)
+				.click ->
+					picked = self.cards.splice (@data 'handIndex'), 1
+					animClone = @clone()
+					@remove()
+					# animClone.transform = @transform().string
+					self.table.snapArea.add animClone
+					animToRow = "t#{self.table.coords.north.x},
+						#{self.table.coords.lowerRow.y}
+						s#{self.table.cardSizeRatio},0,0"
+					animClone.stop().animate transform: animToRow, 180, mina.backout
+					setTimeout (->
+						animClone.remove()
+						self.table.cardRow.cards.push picked[0]
+						self.table.cardRow.renderCardRow()
+						self.renderHand()
+						), 200
 
 			@handGroup.add cardGroup
 

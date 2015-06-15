@@ -42,8 +42,8 @@ Table::getCoords = (width, height) ->
 						east:
 							x: (@width - @cardWidth * .8) / 10 * 8.2
 							y: (@height - @cardHeight) / 2
-						# lowerRow:
-						# 	x: ((@width - @cardWidth) / (rowLength + 1)) / @cardSizeRatio
-						# 	y: @height - @cardHeight * 1.175
+						lowerRow:
+							# x: ((@width - @cardWidth) / (rowLength + 1)) / @cardSizeRatio
+							y: @height - @cardHeight * 1.175
 
 module.exports = Table
