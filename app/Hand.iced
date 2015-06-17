@@ -2,7 +2,7 @@ require './array-utils'
 cardSorter = require './card-sorter'
 
 class Hand
-	constructor: (@table, @pack, @seat, @cards, @isBlind, @isWidow) ->
+	constructor: (@table, @pack, @seat, @appMode, @cards, @isBlind, @isWidow) ->
 		@sortValues = ['7', '8', '9', '10', 'j', 'q', 'k', 'a']
 
 		# випадкове сортування за зростанням або убуванням
@@ -67,6 +67,7 @@ Hand::renderHand = ->
 								)
 							)
 				.click ->
+					console.log self.appMode
 					picked = self.cards.splice (@data 'handIndex'), 1
 					animClone = @clone()
 					@remove()

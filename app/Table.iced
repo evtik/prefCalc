@@ -26,6 +26,9 @@ Table::getCoords = (width, height) ->
 						# @cardWidth для мене загадка
 						rotX: @pack.cardWidth / 4
 						rotY: @pack.cardHeight
+						center:
+							x: (@width - @pack.cardWidth) / 2
+							y: (@height - @pack.cardHeight) / 2
 
 						# усі координати підбиралися емпірично, т.я.
 						# обертання кожної карти у "віялі" робиться

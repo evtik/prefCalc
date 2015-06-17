@@ -23,28 +23,36 @@ CardRow::renderCardRow = ->
 				.data 'rowIndex', i
 				.add self.pack.cards[card.packIndex].pic.select('svg').clone()
 				.add upperRect
-				.click ->
-					picked = self.cards.splice (@data 'rowIndex'), 1
-					# aninClone - це копія карти, яка видаляється із ряду,
-					# для симуляції руху по столу від ряду до руки
-					# можна, звичайно, використати не клон, а поточний
-					# екземпляр, але він анімується "під" карти руки,
-					# що не дуже естетично
-					animClone = @clone()
-					# animClone.transform @transform().string
-					@remove()
-					# без цього рядка клон додається "під" ряд і руку
-					self.table.snapArea.add animClone
-					animToHand = "t#{self.table.coords.north.x},
-						#{self.table.coords.north.y}
-						s#{self.table.cardSizeRatio},0,0"
-					animClone.stop().animate transform: animToHand, 180, mina.backout
-					setTimeout (->
-						animClone.remove()
-						self.table.handNorth.cards.push picked[0]
-						self.table.handNorth.renderHand()
-						self.renderCardRow()
-						), 200
+				.click (e) ->
+					currentHand = 'west'
+					if e.ctrlKey
+						if e.shiftKey
+							currentHand = 'east'
+						else
+							currentHand = 'north'
+					if self.table["hand_#{currentHand}"].cards.length < 10
+						picked = self.cards.splice (@data 'rowIndex'), 1
+						# aninClone - це копія карти, яка видаляється із ряду,
+						# для симуляції руху по столу від ряду до руки
+						# можна, звичайно, використати не клон, а поточний
+						# екземпляр, але він анімується "під" карти руки,
+						# що не дуже естетично
+						animClone = @clone()
+						@remove()
+						# без цього рядка клон додається "під" ряд і руку
+						self.table.snapArea.add animClone
+						animToHand = "t#{self.table.coords[currentHand].x},
+							#{self.table.coords[currentHand].y}
+							s#{self.table.cardSizeRatio},0,0"
+						animClone.stop().animate transform: animToHand, 180, mina.backout
+						setTimeout (->
+							animClone.remove()
+							self.table["hand_#{currentHand}"].cards.push picked[0]
+							self.table["hand_#{currentHand}"].renderHand()
+							self.renderCardRow()
+							), 200
+					else
+						alert 'Кількість карт у руці не може бути більшим за 10!'
 
 			@cardRowGroup.add cardGroup
 
