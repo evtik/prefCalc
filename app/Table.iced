@@ -49,4 +49,27 @@ Table::getCoords = (width, height) ->
 							# x: ((@width - @cardWidth) / (rowLength + 1)) / @cardSizeRatio
 							y: @height - @cardHeight * 1.175
 
+Table::getNextHand = (currentHand, playersNumber, dealer) ->
+	# лише варіант "гусарик" не оброблено: там той, хто здає,
+	# не є "на прикупі", є окремо "здаючий", "прикуп" і "болван"
+	# як не крути - все одно "малювати" доводиться усі 4 руки
+	# у будь-якому варіанті: 2, 3 або 4 гравця; можна домо-
+	# витись: при грі втрьох прикуп постійно на "півдні" і
+	# грають лише 3 руки "захід-північ-схід", при грі удвох -
+	# грають "північ-південь", прикуп-болван чергуються на
+	# "схід-захід"
+	if playersNumber is 4
+		hands = ['north', 'east', 'south', 'west']
+	else
+		hands = ['east', 'north', 'west']
+	if (hands.indexOf currentHand) < (hands.length - 1)
+		nextHand = hands[(hands.indexOf currentHand) + 1]
+	else
+		nextHand = hands[0]
+	if playersNumber is 4 and nextHand is dealer
+		furtherHand = @getNextHand nextHand, playersNumber
+		return furtherHand
+	nextHand
+
+
 module.exports = Table

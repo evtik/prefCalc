@@ -39,6 +39,22 @@ Hand::getSortOrders = ->
 			@sortedUniqueSuits.push uniqueSuits[0], uniqueSuits[2], uniqueSuits[1], uniqueSuits[3]
 			# @sortedUniqueSuits.push uniqueSuits[3] if uniqueSuits.length is 4
 
+Hand::bindClicks = (hand) -> ->
+	picked = hand.cards.splice (@data 'handIndex'), 1
+	animClone = @clone()
+	@remove()
+	hand.table.snapArea.add animClone
+	animToRow = "t#{hand.table.coords.north.x},
+		#{hand.table.coords.lowerRow.y}
+		s#{hand.table.cardSizeRatio},0,0"
+	animClone.stop().animate transform: animToRow, 180, mina.backout
+	setTimeout (->
+		animClone.remove()
+		hand.table.cardRow.cards.push picked[0]
+		hand.table.cardRow.renderCardRow()
+		hand.renderHand()
+		), 200
+
 Hand::renderHand = ->
 	if @cards.length
 		@handGroup.clear()
@@ -66,23 +82,23 @@ Hand::renderHand = ->
 										t0,0", 200, mina.backout
 								)
 							)
-				.click ->
-					console.log self.appMode
-					picked = self.cards.splice (@data 'handIndex'), 1
-					animClone = @clone()
-					@remove()
-					# animClone.transform = @transform().string
-					self.table.snapArea.add animClone
-					animToRow = "t#{self.table.coords.north.x},
-						#{self.table.coords.lowerRow.y}
-						s#{self.table.cardSizeRatio},0,0"
-					animClone.stop().animate transform: animToRow, 180, mina.backout
-					setTimeout (->
-						animClone.remove()
-						self.table.cardRow.cards.push picked[0]
-						self.table.cardRow.renderCardRow()
-						self.renderHand()
-						), 200
+				.click @bindClicks self
+					# console.log self.appMode
+					# picked = self.cards.splice (@data 'handIndex'), 1
+					# animClone = @clone()
+					# @remove()
+					# self.table.snapArea.add animClone
+					# animToRow = "t#{self.table.coords.north.x},
+					# 	#{self.table.coords.lowerRow.y}
+					# 	s#{self.table.cardSizeRatio},0,0"
+					# animClone.stop().animate transform: animToRow, 180, mina.backout
+					# setTimeout (->
+					# 	animClone.remove()
+					# 	self.table.cardRow.cards.push picked[0]
+					# 	self.table.cardRow.renderCardRow()
+					# 	self.renderHand()
+					# 	), 200
+
 
 			@handGroup.add cardGroup
 
