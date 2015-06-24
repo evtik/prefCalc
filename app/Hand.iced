@@ -1,19 +1,17 @@
 require './array-utils'
-cardSorter = require './card-sorter'
 
 class Hand
 	constructor: (@table, @pack, @seat, @appMode, @cards, @isBlind, @isWidow) ->
-		@sortValues = ['7', '8', '9', '10', 'j', 'q', 'k', 'a']
 
 		# випадкове сортування за зростанням або убуванням
 		# номіналу карти на період "життя" руки
 		# до цього було у @getSortOrders() тепер там тільки
 		# сортування за мастями
 		if Math.floor Math.random() * 2
-			arr = @sortValues.slice()
+			arr = @pack.sortValues.slice()
 			@ranDirectionValues = arr.reverse()
 		else
-			@ranDirectionValues = @sortValues
+			@ranDirectionValues = @pack.sortValues
 
 		@cards = []
 		@handGroup = @table.snapArea.g()
@@ -62,7 +60,7 @@ Hand::renderHand = ->
 		angle = 12
 		@cardRotations = []
 		do @getSortOrders
-		@cards.sort cardSorter @sortedUniqueSuits, @ranDirectionValues
+		@cards.sort @pack.cardSorter @sortedUniqueSuits, @ranDirectionValues
 
 		for card, i in @cards
 			upperRect = @table.snapArea

@@ -1,8 +1,6 @@
-cardSorter = require './card-sorter'
-
 class CardRow
 	constructor: (@table, @pack) ->
-		@pack.cards.sort cardSorter ['s', 'd', 'c', 'h']
+		@pack.cards.sort @pack.cardSorter ['s', 'd', 'c', 'h']
 		@cards = (suit: card.suit, value: card.value, packIndex: i for card, i in @pack.cards)
 		@cardRowGroup = @table.snapArea.g()
 		@renderCardRow()
@@ -12,7 +10,7 @@ CardRow::renderCardRow = ->
 		@cardRowGroup.clear()
 		self = @
 		@cardShifts = []
-		@cards.sort cardSorter ['s', 'd', 'c', 'h']
+		@cards.sort @pack.cardSorter ['s', 'd', 'c', 'h']
 		for card, i in @cards
 			upperRect = @table.snapArea
 				.rect 0, 0, @pack.cardWidth, @pack.cardHeight, 10, 10
@@ -52,7 +50,7 @@ CardRow::renderCardRow = ->
 							self.renderCardRow()
 							), 200
 					else
-						alert 'Кількість карт у руці не може бути більшим за 10!'
+						alert 'Кількість карт у руці не може бути більшою за 10!'
 
 			@cardRowGroup.add cardGroup
 

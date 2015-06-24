@@ -49,7 +49,7 @@ Table::getCoords = (width, height) ->
 							# x: ((@width - @cardWidth) / (rowLength + 1)) / @cardSizeRatio
 							y: @height - @cardHeight * 1.175
 
-Table::getNextHand = (currentHand, playersNumber, dealer) ->
+Table::getNextHand = (currentHand) ->
 	# лише варіант "гусарик" не оброблено: там той, хто здає,
 	# не є "на прикупі", є окремо "здаючий", "прикуп" і "болван"
 	# як не крути - все одно "малювати" доводиться усі 4 руки
@@ -58,18 +58,29 @@ Table::getNextHand = (currentHand, playersNumber, dealer) ->
 	# грають лише 3 руки "захід-північ-схід", при грі удвох -
 	# грають "північ-південь", прикуп-болван чергуються на
 	# "схід-захід"
-	if playersNumber is 4
-		hands = ['north', 'east', 'south', 'west']
-	else
-		hands = ['east', 'north', 'west']
+
+	# поки що немає потреби реалізовувати для різної кількості
+	# гравців
+	# (currentHand, playersNumber, dealer
+	# if playersNumber is 4
+	# 	hands = ['north', 'east', 'south', 'west']
+	# else
+	# 	hands = ['east', 'north', 'west']
+	# if (hands.indexOf currentHand) < (hands.length - 1)
+	# 	nextHand = hands[(hands.indexOf currentHand) + 1]
+	# else
+	# 	nextHand = hands[0]
+	# if playersNumber is 4 and nextHand is dealer
+	# 	furtherHand = @getNextHand nextHand, playersNumber
+	# 	return furtherHand
+	# nextHand
+
+	# для аналізатора розкладів і симулятора роздач буде завжди 3
+	hands = ['west', 'north', 'east']
 	if (hands.indexOf currentHand) < (hands.length - 1)
 		nextHand = hands[(hands.indexOf currentHand) + 1]
 	else
 		nextHand = hands[0]
-	if playersNumber is 4 and nextHand is dealer
-		furtherHand = @getNextHand nextHand, playersNumber
-		return furtherHand
 	nextHand
-
 
 module.exports = Table

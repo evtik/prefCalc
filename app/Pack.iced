@@ -5,6 +5,7 @@ class Pack
 										'7h', '8h', '9h', '10h', 'jh', 'qh', 'kh', 'ah',
 										'7s', '8s', '9s', '10s', 'js', 'qs', 'ks', 'as' ]
 		@cards = []
+		@sortValues = ['7', '8', '9', '10', 'j', 'q', 'k', 'a']
 		@getPack ->
 			cb()
 
@@ -38,5 +39,23 @@ Pack::shuffle = ->
 		t = @cards[m]
 		@cards[m] = @cards[i]
 		@cards[i] = t
+
+Pack::cardSorter = (sortSuits, sortValues = @sortValues) ->
+	(current, next) ->
+		if sortSuits.indexOf(current.suit) < sortSuits.indexOf(next.suit)
+			return -1
+		if sortSuits.indexOf(current.suit) > sortSuits.indexOf(next.suit)
+			return 1
+		if sortValues.indexOf(current.value) < sortValues.indexOf(next.value)
+			return 1
+		if sortValues.indexOf(current.value) > sortValues.indexOf(next.value)
+			return -1
+
+	# винесено окремо, бо сортувати потрібно не лише руки,
+	# а й початковий ряд карт, з якого вони формуюються,
+	# бо назви мастей clubs, diamonds, hearts, spades
+	# призводять до послідовності чорний-червоний-червоний-чорний
+	# при читанні зображень з диску, що виглядає не дуже
+
 
 module.exports = Pack

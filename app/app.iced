@@ -54,8 +54,6 @@ anotherGroup.drag()
 someGroup.stop().animate transform: "#{tr}s.0001,1", 400, mina.easein
 setTimeout (-> anotherGroup.stop().animate transform: tr, 400, mina.easeout), 400
 
-console.log table.getNextHand 'east', 4, 'north'
-
 window.addEventListener 'resize', ->
 	table.getCoords window.innerWidth, window.innerHeight
 	table.hand_west?.renderHand()
