@@ -4,6 +4,8 @@ class Table
 		@getCoords width, height
 		@cardRow = {}
 
+# document, flag, flag-2, reply, reply-all, next, rewind, previous, fast-forward, arrow-left, arrow-right
+
 Table::getCoords = (width, height) ->
 	# @width = if width > 640 then width else 640
 	# @height = if height > 480 then height else 480
@@ -47,7 +49,7 @@ Table::getCoords = (width, height) ->
 							y: (@height - @cardHeight) / 2
 						lowerRow:
 							# x: ((@width - @cardWidth) / (rowLength + 1)) / @cardSizeRatio
-							y: @height - @cardHeight * 1.175
+							y: @cardHeight * .5 # ??? хєрня якась, потім повернуся...
 
 Table::getNextHand = (currentHand) ->
 	# лише варіант "гусарик" не оброблено: там той, хто здає,
@@ -76,7 +78,7 @@ Table::getNextHand = (currentHand) ->
 	# nextHand
 
 	# для аналізатора розкладів і симулятора роздач буде завжди 3
-	hands = ['west', 'north', 'east']
+	hands = ['west', 'east', 'south']
 	if (hands.indexOf currentHand) < (hands.length - 1)
 		nextHand = hands[(hands.indexOf currentHand) + 1]
 	else

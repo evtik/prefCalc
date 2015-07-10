@@ -28,6 +28,7 @@ Pack::getPack = (cb) ->
 	@diamond = diamond_card.select('svg')
 	@heart = heart_card.select('svg')
 	@spade = spade_card.select('svg')
+	# getBBox ???? and ...pic: cardPic.select('svg') ???
 	@cardWidth = @cards[0].pic.node.children[0].attributes.width.value
 	@cardHeight = @cards[0].pic.node.children[0].attributes.height.value
 	cb()

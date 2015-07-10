@@ -27,7 +27,7 @@ CardRow::renderCardRow = ->
 						if e.shiftKey
 							currentHand = 'east'
 						else
-							currentHand = 'north'
+							currentHand = 'south'
 					if self.table["hand_#{currentHand}"].cards.length < 10
 						picked = self.cards.splice (@data 'rowIndex'), 1
 						# aninClone - це копія карти, яка видаляється із ряду,
@@ -45,8 +45,12 @@ CardRow::renderCardRow = ->
 						animClone.stop().animate transform: animToHand, 180, mina.backout
 						setTimeout (->
 							animClone.remove()
-							self.table["hand_#{currentHand}"].cards.push picked[0]
-							self.table["hand_#{currentHand}"].renderHand()
+							currentHand = self.table["hand_#{currentHand}"]
+							picked[0].hand = currentHand # ATTENTION!!!
+							currentHand.cards.push picked[0]
+							currentHand.renderHand()
+							currentHand.bindHandCardsHovers()
+							currentHand.bindMovesToCardRow()
 							self.renderCardRow()
 							), 200
 					else
@@ -59,7 +63,7 @@ CardRow::renderCardRow = ->
 			# всередині цього класу чомусь немає доступу
 			# до зовні доданих нових властивостей
 			cardSpacingX = ((@table.width - @table.cardWidth) / (@cards.length + 1)) / @table.cardSizeRatio
-			cardSpacingY = @table.height - @table.cardHeight * 1.175
+			cardSpacingY = @table.cardHeight * .5
 			shift = cardSpacingX * i
 			@cardShifts.push shift
 			el.data 'currentTransform', "t#{cardSpacingX *
