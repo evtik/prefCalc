@@ -1,4 +1,6 @@
 require './array-utils'
+$ = require 'jquery'
+Trick = require './Trick'
 
 class Hand
 	constructor: (@table, @pack, @seat, @cards, @isBlind, @isWidow) ->
@@ -37,113 +39,140 @@ Hand::getSortOrders = ->
 			@sortedUniqueSuits.push uniqueSuits[0], uniqueSuits[2], uniqueSuits[1], uniqueSuits[3]
 			# @sortedUniqueSuits.push uniqueSuits[3] if uniqueSuits.length is 4
 
-Hand::bindCardHoverIn = (el, hand) ->
-	el.stop().animate transform: "#{el.data 'currentTransform'}
-		t0,#{-hand.pack.cardHeight * .4}", 200, mina.elastic
-
-Hand::bindCardHoverOut = (el) ->
-	el.stop().animate transform: "#{el.data 'currentTransform'}
-		t0,0", 200, mina.backout
-
-Hand::bindCardClickToTrick = (el, hand) ->
-	picked = hand.cards.splice (el.data 'handIndex'), 1
-	animClone = el.clone()
-	el.remove()
-	hand.table.snapArea.add animClone
-	animToCenter = "t#{hand.table.coords.center.x},
-		#{hand.table.coords.center.y}
-		s#{hand.table.cardSizeRatio}"
-	animClone.stop().animate transform: animToCenter, 180, mina.backout
-	# setTimeout (->
-
-	# 		hand.table.deal.tricks[hand.table.deal.tricks.length - 1].cards.push picked[0]
-	# 		animClone.remove() # видаляти лише в цьому випадку
-	# 	), 200
-
-Hand::bindCardClickToCardRow = (el, hand) ->
-	picked = hand.cards.splice (el.data 'handIndex'), 1
-	animClone = el.clone()
-	el.remove()
-	hand.table.snapArea.add animClone
-
-	animToRow = "t#{hand.table.coords.north.x},
-		#{hand.table.coords.lowerRow.y}
-		s#{hand.table.cardSizeRatio}" # а до цього було масштабування навколо 0,0
-	animClone.stop().animate transform: animToRow, 180, mina.backout
-	setTimeout (->
-		animClone.remove()
-		hand.table.cardRow.cards.push picked[0]
-		hand.table.cardRow.renderCardRow()
-		hand.renderHand()
-		hand.bindMovesToCardRow()
-		), 200
+Hand::getAllowedSuit = (currentSuit) ->
+	console.log 'getAllowedSuit fired!'
+	console.log @table.deal.tricks[(@table.deal.tricks.length - 1)]
+	# console.log @seat
+	@allowedSuit = null
+	# console.log "поточна масть #{currentSuit}" if currentSuit?
+	# console.log "козир #{@table.deal.trump}" if @table.deal?.trump?
+	if @table.appMode is 'moving'
+		handSuits = (card.suit for card in @cards)
+		# console.log "масті руки #{handSuits}"
+		uniqueHandSuits = handSuits.unique()
+		# console.log "унікальні #{uniqueHandSuits}"
+		# console.log "масть існує #{uniqueHandSuits.exists currentSuit}"
+		if uniqueHandSuits.exists currentSuit
+			@allowedSuit = currentSuit
+		else
+			# console.log "рука має козир #{uniqueHandSuits.exists @table.deal.trump}"
+			if uniqueHandSuits.exists @table.deal.trump
+				@allowedSuit = @table.deal.trump
+	# console.log "дозволена масть #{@allowedSuit}"
 
 Hand::bindHandCardsClicksToTrick = (currentSuit) ->
-	allowedSuit = null
-	handSuits = (card.suit for card in @cards)
-	uniqueHandSuits = handSuits.unique()
-	if uniqueHandSuits.exists currentSuit
-		allowedSuit = currentSuit
-	else
-		if uniqueHandSuits.exists @table.deal.trump
-			allowedSuit = @table.deal.trump
-
 	self = @
+	lastTrick = @table.deal.tricks[(self.table.deal.tricks.length - 1)]
+	# @getAllowedSuit currentSuit if lastTrick.cards.length is 1 # вже відомо після bindHandCardsHovers()
+	# console.log "кліки для руки #{@seat} масть ходу #{currentSuit}
+		# дозволена масть #{@allowedSuit}"
 	for i, el of @handGroup when not Number.isNaN +i
-		if not allowedSuit? or el.data 'suit' is allowedSuit
-			el.click @bindCardClickToTrick el, self
+		do (el) ->
+			unless (self.allowedSuit and (el.data 'suit') isnt self.allowedSuit)
+			# if (self.allowedSuit and (el.data 'suit') is self.allowedSuit) or
+			# not self.allowedSuit
+			# if not self.allowedSuit or el.data 'suit' is self.allowedSuit
+				$(el.node).on 'click', ->
+					picked = self.cards.splice (el.data 'handIndex'), 1
+					animClone = el.clone()
+					el.remove()
+					self.table.snapArea.add animClone
+					animToCenter = "t#{self.table.coords.center.x},
+						#{self.table.coords.center.y}
+						s#{self.table.cardSizeRatio}"
+					animClone.stop().animate transform: animToCenter, 180, mina.backout
+					setTimeout (->
+							animClone.remove()
+							lastTrick.cards.push picked[0]
+							self.renderHand()
+							self.bindMovesToTrick lastTrick.cards[0].suit #??????? не остання, завжди перша
+							# animClone.remove() # видаляти лише в цьому випадку
+						), 200
 
 Hand::unbindHandCardsClicksToTrick = ->
-	self = @
 	for i, el of @handGroup when not Number.isNaN +i
-		el.unclick @bindCardClickToTrick el, self
+		do (el) ->
+			$(el.node).off 'click'
 
 Hand::bindHandCardsClicksToCardRow = ->
 	self = @
 	for i, el of @handGroup when not Number.isNaN +i
-		el.click @bindCardClickToCardRow el, self
-	null
+		do (el) ->
+			$(el.node).on 'click', ->
+				picked = self.cards.splice (el.data 'handIndex'), 1
+				animClone = el.clone()
+				el.remove()
+				self.table.snapArea.add animClone
+
+				animToRow = "t#{self.table.coords.north.x},
+					#{self.table.coords.lowerRow.y}
+					s#{self.table.cardSizeRatio}" # а до цього було масштабування навколо 0,0
+				animClone.stop().animate transform: animToRow, 180, mina.backout
+				setTimeout (->
+					animClone.remove()
+					self.table.cardRow.cards.push picked[0]
+					self.table.cardRow.renderCardRow()
+					self.renderHand()
+					self.bindMovesToCardRow()
+					), 200
 
 Hand::unbindHandCardsClicksToCardRow = ->
-	sefl = @
-	# console.log "unbindHandCardsClicksToCardRow"
 	for i, el of @handGroup when not Number.isNaN +i
-		el.unclick @bindCardClickToCardRow el, self
-	null
+		do (el) ->
+			$(el.node).off 'click'
 
 Hand::bindHandCardsHovers = (currentSuit) ->
 	self = @
+	if @table.appMode is 'moving'
+		lastTrick = @table.deal.tricks[(self.table.deal.tricks.length - 1)]
+		if lastTrick.cards.length is 1# and @seat is lastTrick.hands[1]
+			@getAllowedSuit currentSuit # достатньо зробити один раз для руки після 1-го ходу
+	# console.log "ховери для руки #{@seat} масть ходу #{currentSuit}
+		# дозволена масть #{@allowedSuit}"
 	for i, el of @handGroup when not Number.isNaN +i
-		el.hover (@bindCardHoverIn el, self), (@bindCardHoverOut el)
+		do (el) ->
+			# console.log "масть карти #{el.data 'suit'}
+				# {unless (el.data 'suit') is self.allowedSuit then "не "}
+				# співпадає з дозволеною мастю #{self.allowedSuit}"
+			unless (self.allowedSuit and (el.data 'suit') isnt self.allowedSuit)
+			# if (self.allowedSuit and (el.data 'suit') is self.allowedSuit) or
+			# not self.allowedSuit
+			# if el.data 'suit' is self.allowedSuit or not self.allowedSuit
+				# console.log 'came here!' if self.table.appMode is 'moving'
+				$(el.node).on 'mouseenter', ->
+						el.stop().animate transform: "#{el.data 'currentTransform'}
+							t0,#{-self.pack.cardHeight * .4}", 200, mina.elastic
+				$(el.node).on 'mouseleave', ->
+						el.stop().animate transform: "#{el.data 'currentTransform'}
+							t0,0", 200, mina.backout
 
 Hand::unbindHandCardsHovers = ->
-	self = @
-	console.log "unbindHandCardsHovers"
 	for i, el of @handGroup when not Number.isNaN +i
-		el.unhover (@bindCardHoverIn el, self), (@bindCardHoverOut el)
-	null
+		do (el) ->
+			$(el.node).off 'mouseenter'
+			$(el.node).off 'mouseleave'
 
 Hand::bindMovesToTrick = (currentSuit) ->
 	lastTrick = @table.deal.tricks[(@table.deal.tricks.length - 1)]
 	switch lastTrick.cards.length
 		when 0
-			# @table["hand_#{lastTrick.hands[1]}"].unbindHandCardsHovers()
-			# @table["hand_#{lastTrick.hands[1]}"].unbindHandCardsClicksToTrick()
-			# @table["hand_#{lastTrick.hands[2]}"].unbindHandCardsHovers()
-			# @table["hand_#{lastTrick.hands[2]}"].unbindHandCardsClicksToTrick()
+			console.log "порожня взятка"
 			@table["hand_#{lastTrick.hands[0]}"].bindHandCardsHovers()
 			@table["hand_#{lastTrick.hands[0]}"].bindHandCardsClicksToTrick()
 		when 1
+			console.log "у взятці одна карта"
 			@table["hand_#{lastTrick.hands[0]}"].unbindHandCardsHovers()
 			@table["hand_#{lastTrick.hands[0]}"].unbindHandCardsClicksToTrick()
-			@table["hand_#{lastTrick.hands[1]}"].bindHandCardsHovers()
-			@table["hand_#{lastTrick.hands[1]}"].bindHandCardsClicksToTrick()
-			@table["hand_#{lastTrick.hands[2]}"].bindHandCardsHovers()
+			@table["hand_#{lastTrick.hands[1]}"].bindHandCardsHovers(currentSuit)
+			@table["hand_#{lastTrick.hands[1]}"].bindHandCardsClicksToTrick(currentSuit)
+			@table["hand_#{lastTrick.hands[2]}"].bindHandCardsHovers(currentSuit)
 		when 2
+			console.log "у взятці дві карти"
 			@table["hand_#{lastTrick.hands[1]}"].unbindHandCardsHovers()
 			@table["hand_#{lastTrick.hands[1]}"].unbindHandCardsClicksToTrick()
-			@table["hand_#{lastTrick.hands[2]}"].bindHandCardsClicksToTrick()
+			@table["hand_#{lastTrick.hands[2]}"].bindHandCardsClicksToTrick(currentSuit)
 		when 3
+			console.log "у взятці три карти"
 			@table["hand_#{lastTrick.hands[2]}"].unbindHandCardsHovers()
 			@table["hand_#{lastTrick.hands[2]}"].unbindHandCardsClicksToTrick()
 			lastTrick.winnerHand = lastTrick.getWinnerHand()
@@ -153,26 +182,25 @@ Hand::bindMovesToTrick = (currentSuit) ->
 
 Hand::bindMovesToCardRow = ->
 	self = @
-	console.log self
 	for i, el of @handGroup when not Number.isNaN +i
-		el.click @bindCardClickToCardRow(el, self)
-		# el.click ->
-		# 	picked = self.cards.splice (@data 'handIndex'), 1
-		# 	animClone = @clone()
-		# 	@remove()
-		# 	self.table.snapArea.add animClone
+		do (el) ->
+			$(el.node).on 'click', ->
+				picked = self.cards.splice (el.data 'handIndex'), 1
+				animClone = el.clone()
+				el.remove()
+				self.table.snapArea.add animClone
 
-		# 	animToRow = "t#{self.table.coords.north.x},
-		# 		#{self.table.coords.lowerRow.y}
-		# 		s#{self.table.cardSizeRatio}" # а до цього було масштабування навколо 0,0
-		# 	animClone.stop().animate transform: animToRow, 180, mina.backout
-		# 	setTimeout (->
-		# 		animClone.remove()
-		# 		self.table.cardRow.cards.push picked[0]
-		# 		self.table.cardRow.renderCardRow()
-		# 		self.renderHand()
-		# 		self.bindMovesToCardRow()
-		# 		), 200
+				animToRow = "t#{self.table.coords.north.x},
+					#{self.table.coords.lowerRow.y}
+					s#{self.table.cardSizeRatio}" # а до цього було масштабування навколо 0,0
+				animClone.stop().animate transform: animToRow, 180, mina.backout
+				setTimeout (->
+					animClone.remove()
+					self.table.cardRow.cards.push picked[0]
+					self.table.cardRow.renderCardRow()
+					self.renderHand()
+					self.bindMovesToCardRow()
+					), 200
 
 Hand::renderHand = ->
 	if @cards.length
@@ -190,6 +218,8 @@ Hand::renderHand = ->
 			cardGroup = @table.snapArea.g()
 			cardGroup
 				.data 'handIndex', i
+				.data 'suit', card.suit
+				.data 'value', card.value
 				.add self.pack.cards[card.packIndex].pic.select('svg').clone()
 				.add upperRect
 			@handGroup.add cardGroup

@@ -3,6 +3,7 @@ Hand = require './Hand'
 Table = require './Table'
 CardRow = require './CardRow'
 Trick = require './Trick'
+$ = require 'jquery'
 
 appMode = 'dealing'
 
@@ -10,29 +11,53 @@ await pack = new Pack defer cards
 
 table = new Table window.innerWidth, window.innerHeight, pack
 
-# await Snap.load "icons/document.svg", defer new_icon
-# newIcon = new_icon.select('svg')
-# newIcon.attr fill:'white'
-# newIcon.click ->
-# 	console.log 'doc clicked!'
-# iconsGroup = table.snapArea.g()
-# iconsGroup.add newIcon
-# console.log newIcon.getBBox()
-# iconsGroup.transform "t100,100"
+buttons = ['document', 'flag-2', 'arrow-left', 'arrow-right']
+buttonFragments = []
+buttonPics = []
 
-bNew = document.getElementById 'bNew'
-bStart = document.getElementById 'bStart'
-bForward = document.getElementById 'bForward'
-bBack = document.getElementById 'bBack'
+f = table.snapArea.filter Snap.filter.shadow 7,7,3,'black',.8
+buttonAttrs = fill: 'white', stroke: 'black', strokeWidth: 1
 
-bNew.addEventListener 'click', ->
+await
+	for b,i in buttons
+		Snap.load "icons/#{b}.svg", defer buttonFragments[i]
+
+for fragment,i in buttonFragments
+	do (fragment) ->
+		el = fragment.select('svg')
+		button = table.snapArea.g()
+		button.add el
+		elWidth = button.getBBox().width
+		elHeight = button.getBBox().height
+		rect = table.snapArea.rect 0, 0, elWidth, elHeight
+		rect.attr fill: 'transparent'
+		button.add rect
+		button.data 'currentTransform', "t#{10 + i * 58},10"
+		button.transform "#{button.data 'currentTransform'}"
+		el.attr buttonAttrs
+		button.attr filter: f
+		$(button.node).on 'mousedown', ->
+			button.data 'mousedown', yes
+			button.transform "#{button.data 'currentTransform'}s.95t2,2"
+		$(button.node).on 'mouseup', ->
+			button.transform "#{button.data 'currentTransform'}"
+		$(button.node).on 'mouseenter', ->
+			button[0].attr stroke: 'red'
+		$(button.node).on 'mouseleave', ->
+			button[0].attr stroke: 'black'
+			if button.data 'mousedown'
+				button.transform "#{button.data 'currentTransform'}"
+				button.data 'mousedown', no
+		buttonPics.push button
+
+$(buttonPics[0].node).on 'click', ->
 	startDealing()
 
-bStart.addEventListener 'click', ->
+$(buttonPics[1].node).on 'click', ->
 	table.appMode = 'moving'
 	table.deal = {}
 	table.deal.tricks = []
-	table.deal.trump = 'diamond'
+	table.deal.trump = 'd'
 	table.deal.startHand = table.deal.firstHand = 'west'
 	table.deal.tricks.push new Trick table, pack
 	for hand in table.deal.tricks[0].hands
@@ -40,7 +65,7 @@ bStart.addEventListener 'click', ->
 		table["hand_#{hand}"].unbindHandCardsClicksToCardRow()
 	# зняти оброблювачі з усіх рук!!!
 	table["hand_#{table.deal.firstHand}"].bindMovesToTrick()
-	bStart.disabled = yes
+	buttonPics[0][0].attr fill: 'grey'
 	table.cardRow.cardRowGroup.clear()
 	table.cardRow = null
 	null
@@ -49,9 +74,6 @@ bStart.addEventListener 'click', ->
 
 startDealing = ->
 	table.appMode = 'dealing'
-	bStart.disabled = no
-	bForward.disabled = yes
-	bBack.disabled = yes
 	table.cardRow?.cardRowGroup?.clear()
 	table.hand_west?.handGroup.clear()
 	table.hand_north?.handGroup.clear()

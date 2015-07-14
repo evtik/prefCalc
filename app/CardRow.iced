@@ -45,7 +45,9 @@ CardRow::renderCardRow = ->
 						animClone.stop().animate transform: animToHand, 180, mina.backout
 						setTimeout (->
 							animClone.remove()
+							# console.log currentHand
 							currentHand = self.table["hand_#{currentHand}"]
+							# console.log currentHand
 							picked[0].hand = currentHand # ATTENTION!!!
 							currentHand.cards.push picked[0]
 							currentHand.renderHand()
