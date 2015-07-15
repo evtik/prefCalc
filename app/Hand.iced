@@ -78,11 +78,14 @@ Hand::bindHandCardsClicksToTrick = (currentSuit) ->
 					el.remove()
 					self.table.snapArea.add animClone
 					animToCenter = "t#{self.table.coords.center.x},
-						#{self.table.coords.center.y}
-						s#{self.table.cardSizeRatio}"
-					animClone.stop().animate transform: animToCenter, 180, mina.backout
+						#{self.table.coords.north.y}
+						t#{lastTrick.cardShifts[lastTrick.cards.length].shiftX},
+						#{lastTrick.cardShifts[lastTrick.cards.length].shiftY}
+						s#{self.table.cardSizeRatio}
+						r#{lastTrick.cardRotations[lastTrick.cards.length]}"
+					animClone.stop().animate transform: animToCenter, 1800, mina.backout
 					setTimeout (->
-							animClone.remove()
+							# animClone.remove()
 							lastTrick.cards.push picked[0]
 							self.renderHand()
 							self.bindMovesToTrick lastTrick.cards[0].suit #??????? не остання, завжди перша

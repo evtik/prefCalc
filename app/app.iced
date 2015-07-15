@@ -42,9 +42,9 @@ for fragment,i in buttonFragments
 		$(button.node).on 'mouseup', ->
 			button.transform "#{button.data 'currentTransform'}"
 		$(button.node).on 'mouseenter', ->
-			button[0].attr stroke: 'red'
+			button[0].attr fill: '#f00'#, 'fill-opacity': .5
 		$(button.node).on 'mouseleave', ->
-			button[0].attr stroke: 'black'
+			button[0].attr fill: 'white'#, 'fill-opacity': 1
 			if button.data 'mousedown'
 				button.transform "#{button.data 'currentTransform'}"
 				button.data 'mousedown', no
@@ -66,7 +66,7 @@ $(buttonPics[1].node).on 'click', ->
 		table["hand_#{hand}"].unbindHandCardsClicksToCardRow()
 	# зняти оброблювачі з усіх рук!!!
 	table["hand_#{table.deal.firstHand}"].bindMovesToTrick()
-	buttonPics[0][0].attr fill: 'grey'
+	buttonPics[1][0].attr fill: 'grey'
 	table.cardRow.cardRowGroup.clear()
 	table.cardRow = null
 	null
