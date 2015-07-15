@@ -58,8 +58,9 @@ $(buttonPics[1].node).on 'click', ->
 	table.deal = {}
 	table.deal.tricks = []
 	table.deal.trump = 'd'
-	table.deal.startHand = table.deal.firstHand = 'west'
+	table.deal.firstHand = 'west'
 	table.deal.tricks.push new Trick table, pack
+	console.log table.deal.tricks[table.deal.tricks.length - 1]
 	for hand in table.deal.tricks[0].hands
 		table["hand_#{hand}"].unbindHandCardsHovers()
 		table["hand_#{hand}"].unbindHandCardsClicksToCardRow()

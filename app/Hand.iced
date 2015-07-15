@@ -40,8 +40,8 @@ Hand::getSortOrders = ->
 			# @sortedUniqueSuits.push uniqueSuits[3] if uniqueSuits.length is 4
 
 Hand::getAllowedSuit = (currentSuit) ->
-	console.log 'getAllowedSuit fired!'
-	console.log @table.deal.tricks[(@table.deal.tricks.length - 1)]
+	# console.log 'getAllowedSuit fired!'
+	# console.log @table.deal.tricks[(@table.deal.tricks.length - 1)]
 	# console.log @seat
 	@allowedSuit = null
 	# console.log "поточна масть #{currentSuit}" if currentSuit?
@@ -156,29 +156,40 @@ Hand::bindMovesToTrick = (currentSuit) ->
 	lastTrick = @table.deal.tricks[(@table.deal.tricks.length - 1)]
 	switch lastTrick.cards.length
 		when 0
-			console.log "порожня взятка"
+			# console.log "порожня взятка"
 			@table["hand_#{lastTrick.hands[0]}"].bindHandCardsHovers()
 			@table["hand_#{lastTrick.hands[0]}"].bindHandCardsClicksToTrick()
 		when 1
-			console.log "у взятці одна карта"
+			# console.log "у взятці одна карта"
 			@table["hand_#{lastTrick.hands[0]}"].unbindHandCardsHovers()
 			@table["hand_#{lastTrick.hands[0]}"].unbindHandCardsClicksToTrick()
 			@table["hand_#{lastTrick.hands[1]}"].bindHandCardsHovers(currentSuit)
 			@table["hand_#{lastTrick.hands[1]}"].bindHandCardsClicksToTrick(currentSuit)
 			@table["hand_#{lastTrick.hands[2]}"].bindHandCardsHovers(currentSuit)
 		when 2
-			console.log "у взятці дві карти"
+			# console.log "у взятці дві карти"
 			@table["hand_#{lastTrick.hands[1]}"].unbindHandCardsHovers()
 			@table["hand_#{lastTrick.hands[1]}"].unbindHandCardsClicksToTrick()
 			@table["hand_#{lastTrick.hands[2]}"].bindHandCardsClicksToTrick(currentSuit)
 		when 3
-			console.log "у взятці три карти"
+			# console.log "у взятці три карти"
+			console.log "3 карти, this is"
+			console.log @
 			@table["hand_#{lastTrick.hands[2]}"].unbindHandCardsHovers()
 			@table["hand_#{lastTrick.hands[2]}"].unbindHandCardsClicksToTrick()
-			lastTrick.winnerHand = lastTrick.getWinnerHand()
+			winner = lastTrick.getWinnerHand().hand
+			console.log "winner is #{winner}"
+			winnerHand = @table["hand_#{winner}"]
+			console.log "winnerHand is"
+			console.log winnerHand
+			# console.log "hand before getting winner #{winnerHand.seat}"
+			winnerHand.allowedSuit = null
+			# console.log "hand after getting winner #{winnerHand.seat}"
+			@table.deal.firstHand = winnerHand.seat
 			@table.deal.tricks.push new Trick @table, @pack
-			@table.deal.firstHand = lastTrick.winnerHand
-			@bindMovesToTrick()
+			# @table.deal.firstHand = winnerHand
+			# @table["hand_#{winnerHand}"].bindMovesToTrick()
+			winnerHand.bindMovesToTrick()
 
 Hand::bindMovesToCardRow = ->
 	self = @

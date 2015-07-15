@@ -29,7 +29,7 @@ gulp.task 'bundle', ->
 				gutil.colors.yellow err.column
 			null
 		d.run () ->
-			file.contents = browserify entries: [file.path], extensions: ['.iced']
+			file.contents = browserify entries: [file.path], extensions: ['.iced'], debug: yes
 				.transform icsify
 				.bundle()
 		null
