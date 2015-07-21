@@ -40,57 +40,46 @@ Hand::getSortOrders = ->
 			# @sortedUniqueSuits.push uniqueSuits[3] if uniqueSuits.length is 4
 
 Hand::getAllowedSuit = (currentSuit) ->
-	# console.log 'getAllowedSuit fired!'
-	# console.log @table.deal.tricks[(@table.deal.tricks.length - 1)]
-	# console.log @seat
 	@allowedSuit = null
-	# console.log "поточна масть #{currentSuit}" if currentSuit?
-	# console.log "козир #{@table.deal.trump}" if @table.deal?.trump?
 	if @table.appMode is 'moving'
 		handSuits = (card.suit for card in @cards)
-		# console.log "масті руки #{handSuits}"
 		uniqueHandSuits = handSuits.unique()
-		# console.log "унікальні #{uniqueHandSuits}"
-		# console.log "масть існує #{uniqueHandSuits.exists currentSuit}"
 		if uniqueHandSuits.exists currentSuit
 			@allowedSuit = currentSuit
 		else
-			# console.log "рука має козир #{uniqueHandSuits.exists @table.deal.trump}"
 			if uniqueHandSuits.exists @table.deal.trump
 				@allowedSuit = @table.deal.trump
-	# console.log "дозволена масть #{@allowedSuit}"
 
 Hand::bindHandCardsClicksToTrick = (currentSuit) ->
 	self = @
 	lastTrick = @table.deal.tricks[(self.table.deal.tricks.length - 1)]
-	# @getAllowedSuit currentSuit if lastTrick.cards.length is 1 # вже відомо після bindHandCardsHovers()
-	# console.log "кліки для руки #{@seat} масть ходу #{currentSuit}
-		# дозволена масть #{@allowedSuit}"
 	for i, el of @handGroup when not Number.isNaN +i
 		do (el) ->
 			unless (self.allowedSuit and (el.data 'suit') isnt self.allowedSuit)
-			# if (self.allowedSuit and (el.data 'suit') is self.allowedSuit) or
-			# not self.allowedSuit
-			# if not self.allowedSuit or el.data 'suit' is self.allowedSuit
-				$(el.node).on 'click', ->
+				$(el.node).on 'click', (e) ->
 					picked = self.cards.splice (el.data 'handIndex'), 1
+					currentTransform = el.data 'currentTransform'
 					animClone = el.clone()
-					el.remove()
 					self.table.snapArea.add animClone
-					animToCenter = "t#{self.table.coords.center.x},
-						#{self.table.coords.north.y}
-						t#{lastTrick.cardShifts[lastTrick.cards.length].shiftX},
-						#{lastTrick.cardShifts[lastTrick.cards.length].shiftY}
-						s#{self.table.cardSizeRatio}
-						r#{lastTrick.cardRotations[lastTrick.cards.length]}"
-					animClone.stop().animate transform: animToCenter, 1800, mina.backout
+					animClone.transform "t#{e.pageX - self.pack.cardWidth / 2}," +
+					"#{e.pageY - self.pack.cardHeight / 2}," +
+					"s#{self.table.cardSizeRatio}"
+					el.remove()
+					trickX = self.table.coords.center.x -
+						lastTrick.shiftsRotations["#{self.seat}"].shift.x
+					trickY = self.table.coords.north.y -
+						lastTrick.shiftsRotations["#{self.seat}"].shift.y
+					animToCenter = "t#{trickX},#{trickY}" +
+					"s#{self.table.cardSizeRatio}" +
+					"r#{lastTrick.shiftsRotations["#{self.seat}"].rotation}"
+					animClone.stop().animate transform: animToCenter, 300
 					setTimeout (->
 							# animClone.remove()
 							lastTrick.cards.push picked[0]
 							self.renderHand()
 							self.bindMovesToTrick lastTrick.cards[0].suit #??????? не остання, завжди перша
 							# animClone.remove() # видаляти лише в цьому випадку
-						), 200
+						), 301
 
 Hand::unbindHandCardsClicksToTrick = ->
 	for i, el of @handGroup when not Number.isNaN +i
@@ -130,18 +119,9 @@ Hand::bindHandCardsHovers = (currentSuit) ->
 		lastTrick = @table.deal.tricks[(self.table.deal.tricks.length - 1)]
 		if lastTrick.cards.length is 1# and @seat is lastTrick.hands[1]
 			@getAllowedSuit currentSuit # достатньо зробити один раз для руки після 1-го ходу
-	# console.log "ховери для руки #{@seat} масть ходу #{currentSuit}
-		# дозволена масть #{@allowedSuit}"
 	for i, el of @handGroup when not Number.isNaN +i
 		do (el) ->
-			# console.log "масть карти #{el.data 'suit'}
-				# {unless (el.data 'suit') is self.allowedSuit then "не "}
-				# співпадає з дозволеною мастю #{self.allowedSuit}"
 			unless (self.allowedSuit and (el.data 'suit') isnt self.allowedSuit)
-			# if (self.allowedSuit and (el.data 'suit') is self.allowedSuit) or
-			# not self.allowedSuit
-			# if el.data 'suit' is self.allowedSuit or not self.allowedSuit
-				# console.log 'came here!' if self.table.appMode is 'moving'
 				$(el.node).on 'mouseenter', ->
 						el.stop().animate transform: "#{el.data 'currentTransform'}
 							t0,#{-self.pack.cardHeight * .4}", 200, mina.elastic
@@ -159,39 +139,26 @@ Hand::bindMovesToTrick = (currentSuit) ->
 	lastTrick = @table.deal.tricks[(@table.deal.tricks.length - 1)]
 	switch lastTrick.cards.length
 		when 0
-			# console.log "порожня взятка"
 			@table["hand_#{lastTrick.hands[0]}"].bindHandCardsHovers()
 			@table["hand_#{lastTrick.hands[0]}"].bindHandCardsClicksToTrick()
 		when 1
-			# console.log "у взятці одна карта"
 			@table["hand_#{lastTrick.hands[0]}"].unbindHandCardsHovers()
 			@table["hand_#{lastTrick.hands[0]}"].unbindHandCardsClicksToTrick()
 			@table["hand_#{lastTrick.hands[1]}"].bindHandCardsHovers(currentSuit)
 			@table["hand_#{lastTrick.hands[1]}"].bindHandCardsClicksToTrick(currentSuit)
 			@table["hand_#{lastTrick.hands[2]}"].bindHandCardsHovers(currentSuit)
 		when 2
-			# console.log "у взятці дві карти"
 			@table["hand_#{lastTrick.hands[1]}"].unbindHandCardsHovers()
 			@table["hand_#{lastTrick.hands[1]}"].unbindHandCardsClicksToTrick()
 			@table["hand_#{lastTrick.hands[2]}"].bindHandCardsClicksToTrick(currentSuit)
 		when 3
-			# console.log "у взятці три карти"
-			console.log "3 карти, this is"
-			console.log @
 			@table["hand_#{lastTrick.hands[2]}"].unbindHandCardsHovers()
 			@table["hand_#{lastTrick.hands[2]}"].unbindHandCardsClicksToTrick()
 			winner = lastTrick.getWinnerHand().hand
-			console.log "winner is #{winner}"
 			winnerHand = @table["hand_#{winner}"]
-			console.log "winnerHand is"
-			console.log winnerHand
-			# console.log "hand before getting winner #{winnerHand.seat}"
 			winnerHand.allowedSuit = null
-			# console.log "hand after getting winner #{winnerHand.seat}"
 			@table.deal.firstHand = winnerHand.seat
 			@table.deal.tricks.push new Trick @table, @pack
-			# @table.deal.firstHand = winnerHand
-			# @table["hand_#{winnerHand}"].bindMovesToTrick()
 			winnerHand.bindMovesToTrick()
 
 Hand::bindMovesToCardRow = ->
@@ -231,6 +198,7 @@ Hand::renderHand = ->
 				.attr fill: 'transparent', strokeWidth: 0, opacity: 0.5
 			cardGroup = @table.snapArea.g()
 			cardGroup
+				.data 'packIndex', card.packIndex
 				.data 'handIndex', i
 				.data 'suit', card.suit
 				.data 'value', card.value
@@ -242,13 +210,15 @@ Hand::renderHand = ->
 			rotationAngle = angle * (i - @cards.length / 2 + .5)
 			cardRotation = "r#{rotationAngle}"
 			@cardRotations.push rotationAngle
-			el.data 'currentTransform', "t#{@table.coords[@seat].x}
-				,#{@table.coords[@seat].y}s#{@table.cardSizeRatio},0,0"
-			el.transform el.data 'currentTransform'
+			el.transform "t0,0s1,0,0r0,0,0"
+			el.data 'currentTransform', "t#{@table.coords[@seat].x}" +
+			",#{@table.coords[@seat].y}s#{@table.cardSizeRatio},0,0"
+			el.transform "#{el.data 'currentTransform'}"
 			cardRotationCenter = ",#{@table.coords.rotX},#{@table.coords.rotY}"
-			nextTransform = "#{el.data 'currentTransform'}#{cardRotation}
-				#{cardRotationCenter}"
+			nextTransform = "#{el.data 'currentTransform'}#{cardRotation}" +
+			"#{cardRotationCenter}"
 			el.stop().animate transform: nextTransform, 500, mina.backout
+			# el.transform nextTransform
 			el.data 'currentTransform', nextTransform
 
 module.exports = Hand

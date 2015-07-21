@@ -4,6 +4,7 @@ Table = require './Table'
 CardRow = require './CardRow'
 Trick = require './Trick'
 $ = require 'jquery'
+utils = require './utils'
 
 appMode = 'dealing'
 
@@ -60,7 +61,7 @@ $(buttonPics[1].node).on 'click', ->
 	table.deal.trump = 'd'
 	table.deal.firstHand = 'west'
 	table.deal.tricks.push new Trick table, pack
-	console.log table.deal.tricks[table.deal.tricks.length - 1]
+	# console.log table.deal.tricks[table.deal.tricks.length - 1]
 	for hand in table.deal.tricks[0].hands
 		table["hand_#{hand}"].unbindHandCardsHovers()
 		table["hand_#{hand}"].unbindHandCardsClicksToCardRow()
@@ -70,6 +71,13 @@ $(buttonPics[1].node).on 'click', ->
 	table.cardRow.cardRowGroup.clear()
 	table.cardRow = null
 	null
+
+$(buttonPics[2].node).on 'click', ->
+	for i in [1...10]
+		console.log utils.getRandomInt 1, 5
+
+	for i in [1...10]
+		console.log utils.getRandomInt 0, 9
 
 # pack.shuffle()
 
