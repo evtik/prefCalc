@@ -1,10 +1,11 @@
 require './array-utils'
+utils = require './utils'
 $ = require 'jquery'
 Trick = require './Trick'
 
 class Hand
 	constructor: (@table, @pack, @seat, @cards, @isBlind, @isWidow) ->
-
+		@shiftAngle = 12
 		# випадкове сортування за зростанням або убуванням
 		# номіналу карти на період "життя" руки
 		# до цього було у @getSortOrders() тепер там тільки
@@ -15,9 +16,21 @@ class Hand
 		else
 			@ranDirectionValues = @pack.sortValues
 
+		@getFanFramePath()
+		@grad = @table.snapArea.gradient "r(.5,.5,.95)#00f-#fff"
+		@blurFilter = @table.snapArea.filter Snap.filter.blur 2, 2
+		@fanFrame = @table.snapArea.path ""
+		@fanFrame.attr strokeWidth: 2, stroke: 'yellow'
+		, filter: @blurFilter, opacity: .3, fill: 'transparent'
 		@cards = []
-		@handGroup = @table.snapArea.g()
+		@handGroup = []
 		@renderHand()
+
+Hand::getFanFramePath = ->
+	values = @table.coords["#{@seat}"]
+	@fanFramePath = utils.describeSector values.sectorFanX, values.sectorFanY
+		, @table.coords.fanInnerR, @table.coords.fanOuterR
+		, -@shiftAngle * 3.8, @shiftAngle * 3.8
 
 Hand::getSortOrders = ->
 	sameColors = ['d', 'h']
@@ -109,9 +122,10 @@ Hand::bindHandCardsClicksToCardRow = ->
 					), 200
 
 Hand::unbindHandCardsClicksToCardRow = ->
-	for i, el of @handGroup when not Number.isNaN +i
-		do (el) ->
-			$(el.node).off 'click'
+	# for i, el of @handGroup when not Number.isNaN +i
+	# 	do (el) ->
+	# 		$(el.node).off 'click'
+
 
 Hand::bindHandCardsHovers = (currentSuit) ->
 	self = @
@@ -162,40 +176,50 @@ Hand::bindMovesToTrick = (currentSuit) ->
 			winnerHand.bindMovesToTrick()
 
 Hand::bindMovesToCardRow = ->
-	self = @
-	for i, el of @handGroup when not Number.isNaN +i
-		do (el) ->
-			$(el.node).on 'click', ->
-				picked = self.cards.splice (el.data 'handIndex'), 1
-				animClone = el.clone()
-				el.remove()
-				self.table.snapArea.add animClone
+	console.log "3..." + @
+	for el, i in @handGroup
+		console.log "4...#{@}"
+		el.click @clickCardToRow @ # оце жерсть! :-)
 
-				animToRow = "t#{self.table.coords.north.x},
-					#{self.table.coords.lowerRow.y}
-					s#{self.table.cardSizeRatio}" # а до цього було масштабування навколо 0,0
-				animClone.stop().animate transform: animToRow, 180, mina.backout
-				setTimeout (->
-					animClone.remove()
-					self.table.cardRow.cards.push picked[0]
-					self.table.cardRow.renderCardRow()
-					self.renderHand()
-					self.bindMovesToCardRow()
-					), 200
+Hand::unBindMovesToCardRow = ->
+	console.log "1...#{@}"
+	for el, i in @handGroup
+		console.log "2...#{@}"
+		el.unclick @clickCardToRow @
+
+Hand::clickCardToRow = (hand) ->
+	->
+		console.log "5...#{@}"
+		picked = hand.cards.splice (@data 'handIndex'), 1
+		animClone = @clone()
+		@remove()
+		hand.table.snapArea.add animClone
+
+		animToRow = "t#{hand.table.coords.north.x},
+			#{hand.table.coords.lowerRow.y}
+			s#{hand.table.cardSizeRatio}" # а до цього було масштабування навколо 0,0
+		animClone.stop().animate transform: animToRow, 180, mina.backout
+		setTimeout (->
+			animClone.remove()
+			hand.table.cardRow.cards.push picked[0]
+			hand.table.cardRow.renderCardRow()
+			hand.renderHand()
+			hand.bindMovesToCardRow()
+			), 200
 
 Hand::renderHand = ->
+	@getFanFramePath() # має сенс тільки після рісайзу :-( ще подумати
+	@fanFrame.attr d: @fanFramePath
 	if @cards.length
-		@handGroup.clear()
+		for el, i in @handGroup
+			el.remove()
+		@handGroup = []
 		self = @
-		angle = 12
 		@cardRotations = []
 		do @getSortOrders
 		@cards.sort @pack.cardSorter @sortedUniqueSuits, @ranDirectionValues
 
 		for card, i in @cards
-			upperRect = @table.snapArea
-				.rect 0, 0, @pack.cardWidth, @pack.cardHeight, 10, 10
-				.attr fill: 'transparent', strokeWidth: 0, opacity: 0.5
 			cardGroup = @table.snapArea.g()
 			cardGroup
 				.data 'packIndex', card.packIndex
@@ -203,11 +227,10 @@ Hand::renderHand = ->
 				.data 'suit', card.suit
 				.data 'value', card.value
 				.add self.pack.cards[card.packIndex].pic.select('svg').clone()
-				.add upperRect
-			@handGroup.add cardGroup
+			@handGroup.push cardGroup
 
-		for i, el of @handGroup when not Number.isNaN +i
-			rotationAngle = angle * (i - @cards.length / 2 + .5)
+		for el, i in @handGroup
+			rotationAngle = self.shiftAngle * (i - @cards.length / 2 - .5)# - self.shiftAngle / 2
 			cardRotation = "r#{rotationAngle}"
 			@cardRotations.push rotationAngle
 			el.transform "t0,0s1,0,0r0,0,0"
@@ -218,7 +241,6 @@ Hand::renderHand = ->
 			nextTransform = "#{el.data 'currentTransform'}#{cardRotation}" +
 			"#{cardRotationCenter}"
 			el.stop().animate transform: nextTransform, 500, mina.backout
-			# el.transform nextTransform
 			el.data 'currentTransform', nextTransform
 
 module.exports = Hand

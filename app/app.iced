@@ -23,7 +23,7 @@ await
 	for b,i in buttons
 		Snap.load "icons/#{b}.svg", defer buttonFragments[i]
 
-for fragment,i in buttonFragments
+for fragment, i in buttonFragments
 	do (fragment) ->
 		el = fragment.select('svg')
 		button = table.snapArea.g()
@@ -64,20 +64,28 @@ $(buttonPics[1].node).on 'click', ->
 	# console.log table.deal.tricks[table.deal.tricks.length - 1]
 	for hand in table.deal.tricks[0].hands
 		table["hand_#{hand}"].unbindHandCardsHovers()
-		table["hand_#{hand}"].unbindHandCardsClicksToCardRow()
+		# table["hand_#{hand}"].unbindHandCardsClicksToCardRow()
+		table["hand_#{hand}"].unBindMovesToCardRow()
 	# зняти оброблювачі з усіх рук!!!
 	table["hand_#{table.deal.firstHand}"].bindMovesToTrick()
 	buttonPics[1][0].attr fill: 'grey'
-	table.cardRow.cardRowGroup.clear()
+	# table.cardRow.cardRowGroup.clear()
+	for el, i in table.cardRow.cardRowGroup
+		el.remove()
 	table.cardRow = null
 	null
 
 $(buttonPics[2].node).on 'click', ->
-	for i in [1...10]
-		console.log utils.getRandomInt 1, 5
+	# for i in [1...10]
+	# 	console.log utils.getRandomInt 1, 5
 
-	for i in [1...10]
-		console.log utils.getRandomInt 0, 9
+	# for i in [1...10]
+	# 	console.log utils.getRandomInt 0, 9
+	table.cardRow.setHovers()
+
+$(buttonPics[3].node).on 'click', ->
+	table.cardRow.unSetHovers()
+	# table.cardRow.unDrag()
 
 # pack.shuffle()
 

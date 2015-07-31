@@ -1,10 +1,11 @@
 class Table
 	constructor: (width, height, @pack) ->
+		@mouseDownClone = null
+		@dragClone = null
 		@snapArea = Snap()
+		@fanShiftFactor = 1.8
 		@getCoords width, height
 		@cardRow = {}
-
-# document, flag, flag-2, reply, reply-all, next, rewind, previous, fast-forward, arrow-left, arrow-right
 
 Table::getCoords = (width, height) ->
 	# @width = if width > 640 then width else 640
@@ -31,22 +32,33 @@ Table::getCoords = (width, height) ->
 						center:
 							x: (@width - @pack.cardWidth) / 2
 							y: (@height - @pack.cardHeight) / 2
+						# fanInnerR: @cardHeight * .2
+						fanInnerR: @cardHeight * .55
+						fanOuterR: @cardHeight * 1.95
 
 						# усі координати підбиралися емпірично, т.я.
 						# обертання кожної карти у "віялі" робиться
 						# навколо "несиметричної" точки
 						south:
-							x: (@width - @cardWidth) / 2
-							y: (@height - @cardHeight * 1.2) / 10 * 8.62
+							x: (@width - @cardWidth) / 2 + @cardWidth / 4
+							y: (@height - @cardHeight * 1.2) * .88
+							sectorFanX: (@width - @cardWidth) / 2 + @cardWidth / 2
+							sectorFanY: (@height - @cardHeight * 1.2) * .88 + @cardHeight * @fanShiftFactor
 						north:
-							x: (@width - @cardWidth) / 2
-							y: (@height - @cardHeight * 1.2) / 10 * 1.38
+							x: (@width - @cardWidth) / 2 + @cardWidth / 4
+							y: (@height - @cardHeight * 1.2) * .12
+							sectorFanX: (@width - @cardWidth) / 2 + @cardWidth / 2
+							sectorFanY: (@height - @cardHeight * 1.2) * .12 + @cardHeight * @fanShiftFactor
 						west:
-							x: (@width - @cardWidth * .8) / 10 * 1.8
+							x: (@width - @cardWidth * .8) * .2 + @cardWidth / 4
 							y: (@height - @cardHeight) / 2
+							sectorFanX: (@width - @cardWidth * .8) * .2 + @cardWidth / 2
+							sectorFanY: (@height - @cardHeight) / 2 + @cardHeight * @fanShiftFactor
 						east:
-							x: (@width - @cardWidth * .8) / 10 * 8.2
+							x: (@width - @cardWidth * .8) * .8 + @cardWidth / 4
 							y: (@height - @cardHeight) / 2
+							sectorFanX: (@width - @cardWidth * .8) * .8 + @cardWidth / 2
+							sectorFanY: (@height - @cardHeight) / 2 + @cardHeight * @fanShiftFactor
 						lowerRow:
 							# x: ((@width - @cardWidth) / (rowLength + 1)) / @cardSizeRatio
 							y: @cardHeight * .5 # ??? хєрня якась, потім повернуся...
