@@ -69,7 +69,7 @@ CardRow::mouseUpCard = (e) ->
 				currentHand = 'east'
 			else
 				currentHand = 'south'
-		if cardRow.table["hand_#{currentHand}"].cards.length < 10
+		if cardRow.table.hands["#{currentHand}"].cards.length < 10
 			picked = cardRow.cards.splice (@data 'rowIndex'), 1
 			# aninClone - це копія карти, яка видаляється із ряду,
 			# для симуляції руху по столу від ряду до руки
@@ -87,12 +87,12 @@ CardRow::mouseUpCard = (e) ->
 			setTimeout (->
 				animClone.remove()
 				picked[0].hand = currentHand # ATTENTION!!!
-				selectedHand = cardRow.table["hand_#{currentHand}"]
+				selectedHand = cardRow.table.hands["#{currentHand}"]
 				selectedHand.cards.push picked[0]
 				cardRow.renderCardRow()
 				selectedHand.renderHand()
-				selectedHand.bindHandCardsHovers()
-				selectedHand.bindMovesToCardRow()
+				selectedHand.setHovers()
+				selectedHand.setMouseupsToCardRow()
 				), 200
 		else
 			alert 'Кількість карт у руці не може бути більшою за 10!'
@@ -127,12 +127,11 @@ CardRow::dragMoveCard = (dx, dy, x, y, e) ->
 	#{x - cardRow.table.pack.cardWidth / 3 }
 	,#{y - cardRow.table.pack.cardHeight / 3 }\
 	s#{cardRow.table.cardSizeRatio}"
-	# if Snap.path.isPointInside cardRow.table.hand_west.fanFramePath, x, y
-		# console.log "i'm in west!"
-	# if Snap.path.isPointInside cardRow.table.hand_east.fanFramePath, x, y
-		# console.log "i'm in east!"
-	# if Snap.path.isPointInside cardRow.table.hand_south.fanFramePath, x, y
-		# console.log "i'm in south!"
+	# for name, hand of cardRow.table.hands # very expensive, lags visible :-(
+	# 	if Snap.path.isPointInside hand.fanFramePath, x, y
+	# 		hand.fanFrame.addClass 'fanFrameDragIn'
+	# 	else
+	# 		hand.fanFrame.removeClass 'fanFrameDragIn'
 
 CardRow::dragStartCard = (x, y, e) ->
 	cardRow = @data 'cardRow'

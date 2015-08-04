@@ -1,11 +1,12 @@
 class Table
 	constructor: (width, height, @pack) ->
-		@mouseDownClone = null
+		@mouseDownCard = null
 		@dragClone = null
 		@snapArea = Snap()
 		@fanShiftFactor = 1.8
 		@getCoords width, height
 		@cardRow = {}
+		@hands = {}
 
 Table::getCoords = (width, height) ->
 	# @width = if width > 640 then width else 640
