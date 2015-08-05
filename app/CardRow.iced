@@ -124,8 +124,8 @@ CardRow::dragMoveCard = (dx, dy, x, y, e) ->
 		cardRow.table.snapArea.add cardRow.table.dragClone
 		@attr visibility: 'hidden'
 	cardRow.table.dragClone?.transform "t\
-	#{x - cardRow.table.pack.cardWidth / 3 }
-	,#{y - cardRow.table.pack.cardHeight / 3 }\
+	#{x - cardRow.table.pack.cardWidth / 2 }
+	,#{y - cardRow.table.pack.cardHeight / 2 }\
 	s#{cardRow.table.cardSizeRatio}"
 	# for name, hand of cardRow.table.hands # very expensive, lags visible :-(
 	# 	if Snap.path.isPointInside hand.fanFramePath, x, y
@@ -137,22 +137,42 @@ CardRow::dragStartCard = (x, y, e) ->
 	cardRow = @data 'cardRow'
 	cardRow.table.mouseDownCard = @
 	cardRow.unSetHovers()
+	for name, hand of cardRow.table.hands
+		hand.fanFrame.attr visibility: 'visible'
 
-CardRow::dragEndCard = ->
+CardRow::dragEndCard = (e) ->
 	card = @
 	cardRow = @data 'cardRow'
+	for name, hand of cardRow.table.hands
+		if Snap.path.isPointInside hand.fanFramePath, e.pageX, e.pageY
+			selectedHand = hand
+			break
+	if selectedHand
+		picked = cardRow.cards.splice (@data 'rowIndex'), 1
+		picked[0].hand = selectedHand.seat
+		selectedHand.cards.push picked[0]
+		cardRow.renderCardRow()
+		selectedHand.renderHand()
+		selectedHand.setHovers()
+		selectedHand.setMouseupsToCardRow()
+	else
+		if cardRow.table.dragClone
+			cardRow.table.dragClone.stop()
+			.animate transform: "#{@data 'currentTransform'}t0,0"
+			, 400, mina.backout
+			setTimeout (->
+				card.transform "#{card.data 'currentTransform'}t0,0"
+				card.attr visibility: 'visible'
+				cardRow.table.mouseDownCard = null
+				cardRow.setHovers()
+				), 401
+			setTimeout (-> cardRow.table.isBeingDragged = off), 801 # no longer needed?
+
 	if cardRow.table.dragClone
-		cardRow.table.dragClone.stop()
-		.animate transform: "#{@data 'currentTransform'}t0,0"
-		, 400, mina.backout
-		setTimeout (->
-			cardRow.table.dragClone.remove()
-			cardRow.table.dragClone = null
-			card.transform "#{card.data 'currentTransform'}t0,0"
-			card.attr visibility: 'visible'
-			cardRow.table.mouseDownCard = null
-			cardRow.setHovers()
-			), 401
-		setTimeout (-> cardRow.table.isBeingDragged = off), 801
+		cardRow.table.dragClone.remove()
+		cardRow.table.dragClone = null
+
+	for name, hand of cardRow.table.hands
+		hand.fanFrame.attr visibility: 'hidden'
 
 module.exports = CardRow

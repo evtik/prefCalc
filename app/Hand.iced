@@ -18,12 +18,21 @@ class Hand
 		@getFanFramePath()
 		@grad = @table.snapArea.gradient "r(.5,.5,.95)#00f-#fff"
 		@blurFilter = @table.snapArea.filter Snap.filter.blur 2, 2
-		@fanFrame = @table.snapArea.path ""
-		@fanFrame.attr strokeWidth: 2, stroke: 'yellow'
+		@fanFrame = @table.snapArea.path @fanFramePath
+		@fanFrame.attr strokeWidth: 4, stroke: 'green'
 		, filter: @blurFilter, opacity: .3, fill: 'transparent'
-		lorem = "Scott Glenn was born January 26, 1941, in Pittsburgh, Pennsylvania, to Elizabeth and Theodore Glenn, a salesman. As he grew up in Appalachia, his health was poor; he was bedridden for a year and doctors predicted he would limp for the rest of his life. During long periods of illness, Glenn was reading a lot and 'dreaming of becoming Lord Byron'"
-		caption = @table.snapArea.text 50, 50, lorem
-		caption.attr textpath: @fanFramePath
+		, visibility: 'hidden'
+		# lorem = "Scott Glenn was born January 26, 1941, in Pittsburgh, Pennsylvania, to Elizabeth and Theodore Glenn, a salesman. As he grew up in Appalachia, his health was poor; he was bedridden for a year and doctors predicted he would limp for the rest of his life. During long periods of illness, Glenn was reading a lot and 'dreaming of becoming Lord Byron'"
+		# caption = @table.snapArea.text 50, 50, lorem
+		# caption.attr textpath: @fanFramePath
+
+		@handCardsCounter = @table.snapArea.text 0, 0, ""
+		@handCardsCounter.attr fill: 'white', 'text-anchor': 'middle'
+
+		# @table.snapArea.circle @table.coords[@seat].sectorFanX
+		# , @table.coords[@seat].sectorFanY, 3
+		# 	.attr fill: 'red'
+
 		@cards = []
 		@handGroup = []
 		@renderHand()
@@ -120,7 +129,7 @@ Hand::mouseupCardToCardRow = ->
 		hand.table.cardRow.cards.push picked[0]
 		hand.table.cardRow.renderCardRow()
 		hand.renderHand()
-		hand.bindMovesToCardRow()
+		hand.setMouseupsToCardRow()
 		), 200
 
 Hand::mouseupCardToTrick = (e) ->
@@ -304,7 +313,7 @@ Hand::bindMovesToTrick = (currentSuit) ->
 
 Hand::renderHand = ->
 	@getFanFramePath() # має сенс тільки після рісайзу :-( ще подумати
-	@fanFrame.attr d: @fanFramePath
+	# @fanFrame.attr d: @fanFramePath
 	if @cards.length
 		for el in @handGroup
 			el.remove()
@@ -324,6 +333,12 @@ Hand::renderHand = ->
 				.data 'hand', self
 				.add self.pack.cards[card.packIndex].pic.select('svg').clone()
 			@handGroup.push cardGroup
+
+		if @cards.length
+			@handCardsCounter
+				.transform "t#{@table.coords[@seat].sectorFanX}
+				,#{@table.coords[@seat].sectorFanY - @table.cardHeight / 4 }"
+				.attr text: @cards.length, 'font-size': @table.cardHeight / 4
 
 		for el, i in @handGroup
 			rotationAngle = self.shiftAngle * (i - @cards.length / 2 - .5)# - self.shiftAngle / 2
