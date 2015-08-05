@@ -65,6 +65,7 @@ buttonPics[1].click ->
 		table.hands["#{hand}"].unSetHovers()
 		# table["hand_#{hand}"].unbindHandCardsClicksToCardRow()
 		table.hands["#{hand}"].unSetMouseupsToCardRow()
+		table.hands["#{hand}"].unSetDrags()
 	# зняти оброблювачі з усіх рук!!!
 	table.hands["#{table.deal.firstHand}"].bindMovesToTrick()
 	buttonPics[1][0].attr fill: 'grey'
@@ -91,5 +92,6 @@ startDealing()
 window.addEventListener 'resize', ->
 	table.getCoords window.innerWidth, window.innerHeight
 	for name, hand of table.hands
+		hand.renderFanFrame()
 		hand.renderHand()
 	table.cardRow?.renderCardRow()

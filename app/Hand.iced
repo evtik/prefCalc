@@ -15,10 +15,11 @@ class Hand
 		else
 			@ranDirectionValues = @pack.sortValues
 
-		@getFanFramePath()
+		@fanFrame = @table.snapArea.path ""
+		@renderFanFrame()
 		@grad = @table.snapArea.gradient "r(.5,.5,.95)#00f-#fff"
 		@blurFilter = @table.snapArea.filter Snap.filter.blur 2, 2
-		@fanFrame = @table.snapArea.path @fanFramePath
+
 		@fanFrame.attr strokeWidth: 4, stroke: 'green'
 		, filter: @blurFilter, opacity: .3, fill: 'transparent'
 		, visibility: 'hidden'
@@ -28,21 +29,19 @@ class Hand
 
 		@handCardsCounter = @table.snapArea.text 0, 0, ""
 		@handCardsCounter.attr fill: 'white', 'text-anchor': 'middle'
-
-		# @table.snapArea.circle @table.coords[@seat].sectorFanX
-		# , @table.coords[@seat].sectorFanY, 3
-		# 	.attr fill: 'red'
+			# .addClass 'cardsCounter'
 
 		@cards = []
 		@handGroup = []
 		@renderHand()
 
-Hand::getFanFramePath = ->
+Hand::renderFanFrame = ->
 	values = @table.coords["#{@seat}"]
 	@fanFramePath = utils.describeSector values.sectorFanX
 	, values.sectorFanY
 	, @table.coords.fanInnerR, @table.coords.fanOuterR
 	, -@shiftAngle * 3.8, @shiftAngle * 3.8
+	@fanFrame.attr d: @fanFramePath
 
 Hand::getSortOrders = ->
 	sameColors = ['d', 'h']
@@ -105,6 +104,15 @@ Hand::unSetMouseupsToTrick = ->
 	for el in @handGroup
 		el.unmouseup @mouseupCardToTrick
 
+Hand::setDrags = ->
+	if @table.appMode is 'dealing'
+		for el in @handGroup
+			el.drag @dragMoveCard, @dragStartCard, @dragEndCard
+
+Hand::unSetDrags = ->
+	for el in @handGroup
+		el.undrag()
+
 Hand::hoverInCard = ->
 	@stop().animate transform: "#{@data 'currentTransform'}t0
 	,#{-(@data 'hand').pack.cardHeight * .4}", 200, mina.elastic
@@ -115,22 +123,25 @@ Hand::hoverOutCard = ->
 
 Hand::mouseupCardToCardRow = ->
 	hand = @data 'hand'
-	picked = hand.cards.splice (@data 'handIndex'), 1
-	animClone = @clone()
-	@remove()
-	hand.table.snapArea.add animClone
+	if @ is hand.table.mouseDownCard and not hand.table.dragClone
+		picked = hand.cards.splice (@data 'handIndex'), 1
+		animClone = @clone()
+		@remove()
+		hand.table.snapArea.add animClone
 
-	animToRow = "t#{hand.table.coords.north.x},
-		#{hand.table.coords.lowerRow.y}
-		s#{hand.table.cardSizeRatio}" # а до цього було масштабування навколо 0,0
-	animClone.stop().animate transform: animToRow, 180, mina.backout
-	setTimeout (->
-		animClone.remove()
-		hand.table.cardRow.cards.push picked[0]
-		hand.table.cardRow.renderCardRow()
-		hand.renderHand()
-		hand.setMouseupsToCardRow()
-		), 200
+		animToRow = "t#{hand.table.coords.north.x},
+			#{hand.table.coords.lowerRow.y}
+			s#{hand.table.cardSizeRatio}" # а до цього було масштабування навколо 0,0
+		animClone.stop().animate transform: animToRow, 180, mina.backout
+		setTimeout (->
+			animClone.remove()
+			hand.table.cardRow.cards.push picked[0]
+			hand.table.cardRow.renderCardRow()
+			hand.renderHand()
+			hand.setHovers()
+			hand.setMouseupsToCardRow()
+			hand.setDrags()
+			), 200
 
 Hand::mouseupCardToTrick = (e) ->
 	hand = @data 'hand'
@@ -159,99 +170,60 @@ Hand::mouseupCardToTrick = (e) ->
 			# animClone.remove() # видаляти лише в цьому випадку
 		), 301
 
-Hand::dragMoveCard = ->
-
+Hand::dragMoveCard = (dx, dy, x, y) ->
+	hand = @data 'hand'
+	if !hand.table.dragClone and (dx or dy)
+		hand.table.dragClone = @clone()
+		hand.table.snapArea.add hand.table.dragClone
+		@attr visibility: 'hidden'
+		for name, tableHand of hand.table.hands when tableHand isnt hand
+				tableHand.fanFrame.attr visibility: 'visible'
+	hand.table.dragClone?.transform "t\
+	#{x - hand.table.pack.cardWidth / 2 }
+	,#{y - hand.table.pack.cardHeight / 2 }\
+	s#{hand.table.cardSizeRatio}"
 
 Hand::dragStartCard = ->
+	hand = @data 'hand'
+	hand.table.mouseDownCard = @
+	hand.table.cardRow.unSetHovers()
+	for name, tableHand of hand.table.hands
+		tableHand.unSetHovers()
 
-
-Hand::dragEndCard = ->
-
-
-# Hand::bindHandCardsClicksToTrick = (currentSuit) ->
-# 	self = @
-# 	lastTrick = @table.deal.tricks[(self.table.deal.tricks.length - 1)]
-# 	for i, el of @handGroup when not Number.isNaN +i
-# 		do (el) ->
-# 			unless (self.allowedSuit and (el.data 'suit') isnt self.allowedSuit)
-# 				$(el.node).on 'click', (e) ->
-# 					picked = self.cards.splice (el.data 'handIndex'), 1
-# 					currentTransform = el.data 'currentTransform'
-# 					animClone = el.clone()
-# 					self.table.snapArea.add animClone
-# 					animClone.transform "t#{e.pageX - self.pack.cardWidth / 2}," +
-# 					"#{e.pageY - self.pack.cardHeight / 2}," +
-# 					"s#{self.table.cardSizeRatio}"
-# 					el.remove()
-# 					trickX = self.table.coords.center.x -
-# 						lastTrick.shiftsRotations["#{self.seat}"].shift.x
-# 					trickY = self.table.coords.north.y -
-# 						lastTrick.shiftsRotations["#{self.seat}"].shift.y
-# 					animToCenter = "t#{trickX},#{trickY}" +
-# 					"s#{self.table.cardSizeRatio}" +
-# 					"r#{lastTrick.shiftsRotations["#{self.seat}"].rotation}"
-# 					animClone.stop().animate transform: animToCenter, 300
-# 					setTimeout (->
-# 							# animClone.remove()
-# 							lastTrick.cards.push picked[0]
-# 							self.renderHand()
-# 							self.bindMovesToTrick lastTrick.cards[0].suit #??????? не остання, завжди перша
-# 							# animClone.remove() # видаляти лише в цьому випадку
-# 						), 301
-
-# Hand::unbindHandCardsClicksToTrick = ->
-# 	for i, el of @handGroup when not Number.isNaN +i
-# 		do (el) ->
-# 			$(el.node).off 'click'
-
-# Hand::bindHandCardsClicksToCardRow = ->
-# 	self = @
-# 	for i, el of @handGroup when not Number.isNaN +i
-# 		do (el) ->
-# 			$(el.node).on 'click', ->
-# 				picked = self.cards.splice (el.data 'handIndex'), 1
-# 				animClone = el.clone()
-# 				el.remove()
-# 				self.table.snapArea.add animClone
-
-# 				animToRow = "t#{self.table.coords.north.x},
-# 					#{self.table.coords.lowerRow.y}
-# 					s#{self.table.cardSizeRatio}" # а до цього було масштабування навколо 0,0
-# 				animClone.stop().animate transform: animToRow, 180, mina.backout
-# 				setTimeout (->
-# 					animClone.remove()
-# 					self.table.cardRow.cards.push picked[0]
-# 					self.table.cardRow.renderCardRow()
-# 					self.renderHand()
-# 					self.bindMovesToCardRow()
-# 					), 200
-
-# Hand::unbindHandCardsClicksToCardRow = ->
-# 	# for i, el of @handGroup when not Number.isNaN +i
-# 	# 	do (el) ->
-# 	# 		$(el.node).off 'click'
-
-# Hand::bindHandCardsHovers = (currentSuit) ->
-# 	self = @
-# 	if @table.appMode is 'moving'
-# 		lastTrick = @table.deal.tricks[(self.table.deal.tricks.length - 1)]
-# 		if lastTrick.cards.length is 1# and @seat is lastTrick.hands[1]
-# 			@getAllowedSuit currentSuit # достатньо зробити один раз для руки після 1-го ходу
-# 	for i, el of @handGroup when not Number.isNaN +i
-# 		do (el) ->
-# 			unless (self.allowedSuit and (el.data 'suit') isnt self.allowedSuit)
-# 				$(el.node).on 'mouseenter', ->
-# 						el.stop().animate transform: "#{el.data 'currentTransform'}
-# 							t0,#{-self.pack.cardHeight * .4}", 200, mina.elastic
-# 				$(el.node).on 'mouseleave', ->
-# 						el.stop().animate transform: "#{el.data 'currentTransform'}
-# 							t0,0", 200, mina.backout
-
-# Hand::unbindHandCardsHovers = ->
-# 	for i, el of @handGroup when not Number.isNaN +i
-# 		do (el) ->
-# 			$(el.node).off 'mouseenter'
-# 			$(el.node).off 'mouseleave'
+Hand::dragEndCard = (e) ->
+	card = @
+	hand = @data 'hand'
+	for name, tableHand of hand.table.hands when tableHand isnt hand
+		if Snap.path.isPointInside tableHand.fanFramePath, e.pageX, e.pageY
+			selectedHand = tableHand
+			break
+	if selectedHand
+		picked = hand.cards.splice (@data 'handIndex'), 1
+		picked[0].hand = selectedHand.seat
+		selectedHand.cards.push picked[0]
+		hand.table.dragClone.remove()
+		hand.table.dragClone = null
+		for name, tableHand of hand.table.hands
+			tableHand.renderHand()
+			tableHand.fanFrame.attr visibility: 'hidden'
+			tableHand.setHovers()
+			tableHand.setMouseupsToCardRow()
+			tableHand.setDrags()
+	else
+		if hand.table.dragClone
+			hand.table.dragClone.stop()
+			.animate transform: "#{@data 'currentTransform'}t0,0"
+			, 400, mina.backout
+			setTimeout (->
+				hand.table.dragClone.remove()
+				hand.table.dragClone = null
+				card.transform "#{card.data 'currentTransform'}t0,0"
+				card.attr visibility: 'visible'
+				hand.table.mouseDownCard = null
+				for name, tableHand in hand.table.hands
+					tableHand.fanFrame.attr visibility: 'hidden'
+					tableHand.setHovers()
+				), 401
 
 Hand::bindMovesToTrick = (currentSuit) ->
 	lastTrick = @table.deal.tricks[(@table.deal.tricks.length - 1)]
@@ -279,41 +251,7 @@ Hand::bindMovesToTrick = (currentSuit) ->
 			@table.deal.tricks.push new Trick @table, @pack
 			winnerHand.bindMovesToTrick()
 
-# Hand::bindMovesToCardRow = ->
-# 	console.log "3..." + @
-# 	for el, i in @handGroup
-# 		console.log "4...#{@}"
-# 		el.click @clickCardToRow @ # оце жерсть! :-)
-
-# Hand::unBindMovesToCardRow = ->
-# 	console.log "1...#{@}"
-# 	for el, i in @handGroup
-# 		console.log "2...#{@}"
-# 		el.unclick @clickCardToRow @
-
-# Hand::clickCardToRow = (hand) ->
-# 	->
-# 		console.log "5...#{@}"
-# 		picked = hand.cards.splice (@data 'handIndex'), 1
-# 		animClone = @clone()
-# 		@remove()
-# 		hand.table.snapArea.add animClone
-
-# 		animToRow = "t#{hand.table.coords.north.x},
-# 			#{hand.table.coords.lowerRow.y}
-# 			s#{hand.table.cardSizeRatio}" # а до цього було масштабування навколо 0,0
-# 		animClone.stop().animate transform: animToRow, 180, mina.backout
-# 		setTimeout (->
-# 			animClone.remove()
-# 			hand.table.cardRow.cards.push picked[0]
-# 			hand.table.cardRow.renderCardRow()
-# 			hand.renderHand()
-# 			hand.bindMovesToCardRow()
-# 			), 200
-
 Hand::renderHand = ->
-	@getFanFramePath() # має сенс тільки після рісайзу :-( ще подумати
-	# @fanFrame.attr d: @fanFramePath
 	if @cards.length
 		for el in @handGroup
 			el.remove()
@@ -334,11 +272,11 @@ Hand::renderHand = ->
 				.add self.pack.cards[card.packIndex].pic.select('svg').clone()
 			@handGroup.push cardGroup
 
-		if @cards.length
-			@handCardsCounter
-				.transform "t#{@table.coords[@seat].sectorFanX}
-				,#{@table.coords[@seat].sectorFanY - @table.cardHeight / 4 }"
-				.attr text: @cards.length, 'font-size': @table.cardHeight / 4
+		@handCardsCounter
+			.transform "t#{@table.coords[@seat].sectorFanX}
+			,#{@table.coords[@seat].sectorFanY - @table.cardHeight / 4 }"
+			.attr text: @cards.length, 'font-size': @table.cardHeight / 4
+			, visibility: 'visible'
 
 		for el, i in @handGroup
 			rotationAngle = self.shiftAngle * (i - @cards.length / 2 - .5)# - self.shiftAngle / 2
@@ -353,6 +291,8 @@ Hand::renderHand = ->
 			"#{cardRotationCenter}"
 			el.stop().animate transform: nextTransform, 500, mina.backout
 			el.data 'currentTransform', nextTransform
+	else
+		@handCardsCounter.attr visibility: 'hidden'
 
 module.exports = Hand
 

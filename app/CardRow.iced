@@ -69,33 +69,34 @@ CardRow::mouseUpCard = (e) ->
 				currentHand = 'east'
 			else
 				currentHand = 'south'
-		if cardRow.table.hands["#{currentHand}"].cards.length < 10
-			picked = cardRow.cards.splice (@data 'rowIndex'), 1
-			# aninClone - це копія карти, яка видаляється із ряду,
-			# для симуляції руху по столу від ряду до руки
-			# можна, звичайно, використати не клон, а поточний
-			# екземпляр, але він анімується "під" карти руки,
-			# що не дуже естетично
-			animClone = @clone()
-			@remove()
-			# без цього рядка клон додається "під" ряд і руку
-			cardRow.table.snapArea.add animClone
-			animToHand = "t#{cardRow.table.coords[currentHand].x},
-				#{cardRow.table.coords[currentHand].y}
-				s#{cardRow.table.cardSizeRatio},0,0"
-			animClone.stop().animate transform: animToHand, 180, mina.backout
-			setTimeout (->
-				animClone.remove()
-				picked[0].hand = currentHand # ATTENTION!!!
-				selectedHand = cardRow.table.hands["#{currentHand}"]
-				selectedHand.cards.push picked[0]
-				cardRow.renderCardRow()
-				selectedHand.renderHand()
-				selectedHand.setHovers()
-				selectedHand.setMouseupsToCardRow()
-				), 200
-		else
-			alert 'Кількість карт у руці не може бути більшою за 10!'
+		# if cardRow.table.hands["#{currentHand}"].cards.length < 10
+		picked = cardRow.cards.splice (@data 'rowIndex'), 1
+		# aninClone - це копія карти, яка видаляється із ряду,
+		# для симуляції руху по столу від ряду до руки
+		# можна, звичайно, використати не клон, а поточний
+		# екземпляр, але він анімується "під" карти руки,
+		# що не дуже естетично
+		animClone = @clone()
+		@remove()
+		# без цього рядка клон додається "під" ряд і руку
+		cardRow.table.snapArea.add animClone
+		animToHand = "t#{cardRow.table.coords[currentHand].x},
+			#{cardRow.table.coords[currentHand].y}
+			s#{cardRow.table.cardSizeRatio},0,0"
+		animClone.stop().animate transform: animToHand, 180, mina.backout
+		setTimeout (->
+			animClone.remove()
+			picked[0].hand = currentHand # ATTENTION!!!
+			selectedHand = cardRow.table.hands["#{currentHand}"]
+			selectedHand.cards.push picked[0]
+			cardRow.renderCardRow()
+			selectedHand.renderHand()
+			selectedHand.setHovers()
+			selectedHand.setMouseupsToCardRow()
+			selectedHand.setDrags()
+			), 200
+		# else
+		# 	alert 'Кількість карт у руці не може бути більшою за 10!'
 
 CardRow::hoverInCard = ->
 	@stop().animate transform: "#{@data 'currentTransform'}t0
@@ -105,7 +106,7 @@ CardRow::hoverOutCard = ->
 	@stop().animate transform: "#{@data 'currentTransform'}t0
 	,0", 200, mina.backout
 
-CardRow::dragMoveCard = (dx, dy, x, y, e) ->
+CardRow::dragMoveCard = (dx, dy, x, y) ->
 	cardRow = @data 'cardRow'
 	# для одночасної роботи і click'у і drag'у довелося
 	# використати подію mouseup замість click, бо одразу
@@ -123,22 +124,18 @@ CardRow::dragMoveCard = (dx, dy, x, y, e) ->
 		cardRow.table.dragClone = @clone()
 		cardRow.table.snapArea.add cardRow.table.dragClone
 		@attr visibility: 'hidden'
+		# show fan frames only when drag movement starts
+		for name, hand of cardRow.table.hands
+			hand.fanFrame.attr visibility: 'visible'
 	cardRow.table.dragClone?.transform "t\
 	#{x - cardRow.table.pack.cardWidth / 2 }
 	,#{y - cardRow.table.pack.cardHeight / 2 }\
 	s#{cardRow.table.cardSizeRatio}"
-	# for name, hand of cardRow.table.hands # very expensive, lags visible :-(
-	# 	if Snap.path.isPointInside hand.fanFramePath, x, y
-	# 		hand.fanFrame.addClass 'fanFrameDragIn'
-	# 	else
-	# 		hand.fanFrame.removeClass 'fanFrameDragIn'
 
-CardRow::dragStartCard = (x, y, e) ->
+CardRow::dragStartCard = ->
 	cardRow = @data 'cardRow'
 	cardRow.table.mouseDownCard = @
 	cardRow.unSetHovers()
-	for name, hand of cardRow.table.hands
-		hand.fanFrame.attr visibility: 'visible'
 
 CardRow::dragEndCard = (e) ->
 	card = @
@@ -151,26 +148,26 @@ CardRow::dragEndCard = (e) ->
 		picked = cardRow.cards.splice (@data 'rowIndex'), 1
 		picked[0].hand = selectedHand.seat
 		selectedHand.cards.push picked[0]
+		cardRow.table.dragClone.remove()
+		cardRow.table.dragClone = null
 		cardRow.renderCardRow()
 		selectedHand.renderHand()
 		selectedHand.setHovers()
 		selectedHand.setMouseupsToCardRow()
+		selectedHand.setDrags()
 	else
 		if cardRow.table.dragClone
 			cardRow.table.dragClone.stop()
 			.animate transform: "#{@data 'currentTransform'}t0,0"
 			, 400, mina.backout
 			setTimeout (->
+				cardRow.table.dragClone.remove()
+				cardRow.table.dragClone = null
 				card.transform "#{card.data 'currentTransform'}t0,0"
 				card.attr visibility: 'visible'
 				cardRow.table.mouseDownCard = null
 				cardRow.setHovers()
 				), 401
-			setTimeout (-> cardRow.table.isBeingDragged = off), 801 # no longer needed?
-
-	if cardRow.table.dragClone
-		cardRow.table.dragClone.remove()
-		cardRow.table.dragClone = null
 
 	for name, hand of cardRow.table.hands
 		hand.fanFrame.attr visibility: 'hidden'
