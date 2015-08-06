@@ -7,11 +7,86 @@ class Trick
 		@hands.push @table.deal.firstHand
 		@hands.push @table.getNextHand @hands[0]
 		@hands.push @table.getNextHand @hands[1]
-		@trickGroup = @table.snapArea.g()
+		@trickGroup = []
 		@shiftsRotations = {}
 		@getRandoms()
 
 Trick::renderTrick = ->
+	if @cards.length
+		for el in @trickGroup
+			el.remove()
+		@trickGroup = []
+		self = @
+
+		for card in @cards
+			cardGroup = @table.snapArea.g()
+			cardGroup
+				.data 'packIndex', card.packIndex
+				.data 'hand', card.hand
+				.data 'trick', self
+				.add self.pack.cards[card.packIndex].pic.select('svg').clone()
+			@trickGroup.push cardGroup
+
+		for el in @trickGroup
+			el.transform "t0,0s1,0,0r0,0,0"
+			handName = el.data 'hand'
+			hand = @table.hands["#{handName}"]
+			trickX = hand.table.coords.center.x -
+				@shiftsRotations["#{hand.seat}"].shift.x
+			trickY = hand.table.coords.north.y -
+				@shiftsRotations["#{hand.seat}"].shift.y
+			tr = "t#{trickX},#{trickY}" +
+			"s#{hand.table.cardSizeRatio}" +
+			"r#{@shiftsRotations["#{hand.seat}"].rotation}"
+			el.transform tr
+
+Trick::animateTrickToHand = ->
+	self = @
+	if @cards.length is 3
+		# moves all 3 trick cards to heap
+		setTimeout (->
+			for el in self.trickGroup
+				el.stop()
+				.animate transform: "T#{self.table.coords.center.x}
+				,#{self.table.coords.north.y}S#{self.table.cardSizeRatio}R0"
+				, 400, mina.easein
+			), 400
+		# removes first two lower cards since there's no need of them
+		setTimeout (->
+				for el, i in self.trickGroup when i isnt 2
+					el.remove()
+			), 800
+		# shrinks the remaining upper card, 1st phase of folding
+		setTimeout (->
+			self.trickGroup[2].stop()
+			.animate transform: "t#{self.table.coords.center.x}
+			,#{self.table.coords.north.y}s.0001
+			,#{self.table.cardSizeRatio}r0", 400
+			# removes the last trick card
+			setTimeout (->
+				self.trickGroup[2].remove()
+				self.trickGroup = []
+				), 401
+			), 1200
+		# adds animating back
+		setTimeout (->
+			back = self.table.snapArea.g()
+			back.add self.pack.backBlue
+			back.attr visibility: 'hidden'
+			back.transform "t0,0s1r0"
+			back.transform "t#{self.table.coords.center.x}
+			,#{self.table.coords.north.y}s.0001
+			,#{self.table.cardSizeRatio}r0"
+
+			back.attr visibility:'visible'
+			back.stop().animate transform: "t#{self.table.coords.center.x}
+			,#{self.table.coords.north.y}s#{self.table.cardSizeRatio}
+			,#{self.table.cardSizeRatio}r0", 400
+			# removes back
+			setTimeout (->
+				back.remove()
+				), 1500
+			), 1600
 
 Trick::getRandoms = ->
 
@@ -31,7 +106,7 @@ Trick::getRandoms = ->
 			x: (@pack.cardWidth * -.35) + (utils.getRandomInt 0, 6) * 0.03 * @pack.cardWidth
 			y: 0
 
-Trick::getWinnerHand = ->
+Trick::getWinnerCard = ->
 	self = @
 	compareCards = (first, second) ->
 		if first.suit isnt self.table.deal.trump

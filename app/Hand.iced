@@ -138,7 +138,8 @@ Hand::mouseupCardToCardRow = ->
 			hand.table.cardRow.cards.push picked[0]
 			hand.table.cardRow.renderCardRow()
 			hand.renderHand()
-			hand.setHovers()
+			for name, tableHand of hand.table.hands
+				tableHand.setHovers()
 			hand.setMouseupsToCardRow()
 			hand.setDrags()
 			), 200
@@ -163,8 +164,10 @@ Hand::mouseupCardToTrick = (e) ->
 	"r#{lastTrick.shiftsRotations["#{hand.seat}"].rotation}"
 	animClone.stop().animate transform: animToCenter, 300
 	setTimeout (->
-			# animClone.remove()
+			animClone.remove()
 			lastTrick.cards.push picked[0]
+			lastTrick.renderTrick()
+			lastTrick.animateTrickToHand() if lastTrick.cards.length is 3
 			hand.renderHand()
 			hand.bindMovesToTrick lastTrick.cards[0].suit #??????? не остання, завжди перша
 			# animClone.remove() # видаляти лише в цьому випадку
@@ -203,8 +206,9 @@ Hand::dragEndCard = (e) ->
 		selectedHand.cards.push picked[0]
 		hand.table.dragClone.remove()
 		hand.table.dragClone = null
+		hand.renderHand()
+		selectedHand.renderHand()
 		for name, tableHand of hand.table.hands
-			tableHand.renderHand()
 			tableHand.fanFrame.attr visibility: 'hidden'
 			tableHand.setHovers()
 			tableHand.setMouseupsToCardRow()
@@ -244,7 +248,7 @@ Hand::bindMovesToTrick = (currentSuit) ->
 		when 3
 			@table.hands["#{lastTrick.hands[2]}"].unSetHovers()
 			@table.hands["#{lastTrick.hands[2]}"].unSetMouseupsToTrick()
-			winner = lastTrick.getWinnerHand().hand
+			winner = lastTrick.getWinnerCard().hand
 			winnerHand = @table.hands["#{winner}"]
 			winnerHand.allowedSuit = null
 			@table.deal.firstHand = winnerHand.seat
@@ -258,7 +262,7 @@ Hand::renderHand = ->
 		@handGroup = []
 		self = @
 		@cardRotations = []
-		do @getSortOrders
+		@getSortOrders()
 		@cards.sort @pack.cardSorter @sortedUniqueSuits, @ranDirectionValues
 
 		for card, i in @cards

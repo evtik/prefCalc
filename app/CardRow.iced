@@ -91,7 +91,8 @@ CardRow::mouseUpCard = (e) ->
 			selectedHand.cards.push picked[0]
 			cardRow.renderCardRow()
 			selectedHand.renderHand()
-			selectedHand.setHovers()
+			for name, tableHand in cardRow.table.hands
+				tableHand.setHovers()
 			selectedHand.setMouseupsToCardRow()
 			selectedHand.setDrags()
 			), 200
@@ -152,9 +153,10 @@ CardRow::dragEndCard = (e) ->
 		cardRow.table.dragClone = null
 		cardRow.renderCardRow()
 		selectedHand.renderHand()
-		selectedHand.setHovers()
-		selectedHand.setMouseupsToCardRow()
-		selectedHand.setDrags()
+		for name, tableHand of cardRow.table.hands
+			tableHand.setHovers()
+			tableHand.setMouseupsToCardRow()
+			tableHand.setDrags()
 	else
 		if cardRow.table.dragClone
 			cardRow.table.dragClone.stop()
