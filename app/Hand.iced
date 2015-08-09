@@ -33,6 +33,8 @@ class Hand
 
 		@cards = []
 		@handGroup = []
+		@tricks = []
+		@tricksGroup = []
 		@renderHand()
 
 Hand::renderFanFrame = ->
@@ -41,7 +43,60 @@ Hand::renderFanFrame = ->
 	, values.sectorFanY
 	, @table.coords.fanInnerR, @table.coords.fanOuterR
 	, -@shiftAngle * 3.8, @shiftAngle * 3.8
+
 	@fanFrame.attr d: @fanFramePath
+
+Hand::renderTricks = ->
+	if @tricks.length
+		self = @
+		height = @table.cardHeight
+		width = @table.cardWidth
+		size = height - width
+		shift = height * .2
+		startX = @table.coords[@seat].x
+		startY = @table.coords[@seat].y
+		for trick, i in @tricks
+			backGroup = @table.snapArea.g().attr visibility:'hidden'
+			# rect = @table.snapArea.rect 0,0, width, height
+			# 	.attr fill: 'transparent', stroke:'red'
+			back = @table.snapArea.g().add @pack.backBlue.clone()
+			circle = @table.snapArea.circle 0,0, size * .6
+				.attr fill: 'white', stroke: 'black', strokeWidth: 1
+			number = @table.snapArea.text 0,0, i + 1
+				.attr fill:'black', 'font-size': size * .8, 'text-anchor': 'middle'
+			box = number.getBBox()
+			backGroup.add back, circle, number
+
+			y = startY - (Math.floor i / 2) * size - i * shift
+			unless i % 2
+				x = startX + (Math.round i / 2) * size + i * shift
+				# y = startY - (Math.floor i / 2) * size - i * shift
+				backTransform = "t#{x},#{y}R45,#{startX},#{startY}\
+				s#{@table.cardSizeRatio},0,0" # чому решта навколо центру
+				circleTransform = "t#{x + width / 2}
+				,#{y + (height + width - shift) / 2}R45,#{startX},#{startY}\
+				s#{@table.cardSizeRatio}"
+				numberTransform = "t#{x + width / 2}
+				,#{y + (height + width - shift) / 2 - box.y - box.h / 2}\
+				r-45R45,#{startX},#{startY}s#{@table.cardSizeRatio}"
+			else
+				x = startX + width + (Math.round i / 2) * size + i * shift
+				# y = startY - (Math.floor i / 2) * size - i * shift
+				backTransform = "t#{x},#{y}r90,0,0R45,#{startX},#{startY}\
+				s#{@table.cardSizeRatio},0,0"
+				circleTransform = "t#{x + width / 2}
+				,#{y + (height + width - shift) / 2}\
+				R90,#{x},#{y}R45,#{startX},#{startY}\
+				s#{@table.cardSizeRatio}"
+				numberTransform = "t#{x + width / 2}
+				,#{y + (height + width - shift) / 2 - box.y - box.h / 2}\
+				R90,#{x},#{y}r-135R45,#{startX},#{startY}s#{@table.cardSizeRatio}"
+
+			# rect.transform backTransform
+			back.transform backTransform
+			circle.transform circleTransform
+			number.transform numberTransform
+			backGroup.attr visibility: 'visible'
 
 Hand::getSortOrders = ->
 	sameColors = ['d', 'h']
@@ -251,6 +306,10 @@ Hand::bindMovesToTrick = (currentSuit) ->
 			winner = lastTrick.getWinnerCard().hand
 			winnerHand = @table.hands["#{winner}"]
 			winnerHand.allowedSuit = null
+			cloneLastTrick = Object.create lastTrick
+			winnerHand.tricks.push cloneLastTrick
+			setTimeout (->
+				winnerHand.renderTricks() ), 4000
 			@table.deal.firstHand = winnerHand.seat
 			@table.deal.tricks.push new Trick @table, @pack
 			winnerHand.bindMovesToTrick()

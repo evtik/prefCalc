@@ -71,7 +71,7 @@ Trick::animateTrickToHand = ->
 		# adds animating back
 		setTimeout (->
 			back = self.table.snapArea.g()
-			back.add self.pack.backBlue
+			back.add self.pack.backBlue.clone()
 			back.attr visibility: 'hidden'
 			back.transform "t0,0s1r0"
 			back.transform "t#{self.table.coords.center.x}
