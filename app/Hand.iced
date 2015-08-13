@@ -46,56 +46,90 @@ Hand::renderFanFrame = ->
 
 	@fanFrame.attr d: @fanFramePath
 
+Hand::getTrickCoords = (index) ->
+	# console.log @seat
+	startX = @table.coords[@seat].x
+	startY = @table.coords[@seat].y
+	height = @table.cardHeight
+	width = @table.cardWidth
+	size = height - width
+	# offset = height * .2
+	offset = 0
+	# getting card right triangle
+	angle = Snap.deg Math.atan width / height
+	# getting the hypotenuse
+	hypo = (Math.sqrt ((Math.pow width, 2) + (Math.pow height, 2))) / 2
+	if @seat is 'south' # horizontal placement
+		xShift = hypo * Math.cos Snap.rad (-angle - 90 + 45)
+		shift = index * 2 * (xShift + offset)
+		unless index % 2
+			tr = "s#{@table.cardSizeRatio},#{@table.cardSizeRatio}\
+			r45T#{startX + shift},#{startY}"
+		else
+			tr = "s#{@table.cardSizeRatio},#{@table.cardSizeRatio}\
+			r-45T#{startX + shift},#{startY}"
+	else # vertical placement
+		yShift = hypo * Math.sin Snap.rad (-270 + angle + 45)
+		shift = index * 2 * (yShift + offset)
+		unless index % 2
+			tr = "s#{@table.cardSizeRatio},#{@table.cardSizeRatio}\
+			r45T#{startX},#{startY + shift}"
+		else
+			tr = "s#{@table.cardSizeRatio},#{@table.cardSizeRatio}\
+			r-45T#{startX},#{startY + shift}"
+	tr
+
 Hand::renderTricks = ->
 	if @tricks.length
-		self = @
-		height = @table.cardHeight
-		width = @table.cardWidth
-		size = height - width
-		shift = height * .2
-		startX = @table.coords[@seat].x
-		startY = @table.coords[@seat].y
+		# self = @
+		# height = @table.cardHeight
+		# width = @table.cardWidth
+		# size = height - width
+		# shift = height * .2
+		# startX = @table.coords[@seat].x
+		# startY = @table.coords[@seat].y
 		for trick, i in @tricks
 			backGroup = @table.snapArea.g().attr visibility:'hidden'
 			# rect = @table.snapArea.rect 0,0, width, height
 			# 	.attr fill: 'transparent', stroke:'red'
 			back = @table.snapArea.g().add @pack.backBlue.clone()
-			circle = @table.snapArea.circle 0,0, size * .6
-				.attr fill: 'white', stroke: 'black', strokeWidth: 1
-			number = @table.snapArea.text 0,0, i + 1
-				.attr fill:'black', 'font-size': size * .8, 'text-anchor': 'middle'
-			box = number.getBBox()
-			backGroup.add back, circle, number
+			# circle = @table.snapArea.circle 0,0, size * .6
+			# 	.attr fill: 'white', stroke: 'black', strokeWidth: 1
+			# number = @table.snapArea.text 0,0, i + 1
+			# 	.attr fill:'black', 'font-size': size * .8, 'text-anchor': 'middle'
+			# box = number.getBBox()
+			# backGroup.add back, circle, number
+			backGroup.add back
 
-			y = startY - (Math.floor i / 2) * size - i * shift
-			unless i % 2
-				x = startX + (Math.round i / 2) * size + i * shift
-				# y = startY - (Math.floor i / 2) * size - i * shift
-				backTransform = "t#{x},#{y}R45,#{startX},#{startY}\
-				s#{@table.cardSizeRatio},0,0" # чому решта навколо центру
-				circleTransform = "t#{x + width / 2}
-				,#{y + (height + width - shift) / 2}R45,#{startX},#{startY}\
-				s#{@table.cardSizeRatio}"
-				numberTransform = "t#{x + width / 2}
-				,#{y + (height + width - shift) / 2 - box.y - box.h / 2}\
-				r-45R45,#{startX},#{startY}s#{@table.cardSizeRatio}"
-			else
-				x = startX + width + (Math.round i / 2) * size + i * shift
-				# y = startY - (Math.floor i / 2) * size - i * shift
-				backTransform = "t#{x},#{y}r90,0,0R45,#{startX},#{startY}\
-				s#{@table.cardSizeRatio},0,0"
-				circleTransform = "t#{x + width / 2}
-				,#{y + (height + width - shift) / 2}\
-				R90,#{x},#{y}R45,#{startX},#{startY}\
-				s#{@table.cardSizeRatio}"
-				numberTransform = "t#{x + width / 2}
-				,#{y + (height + width - shift) / 2 - box.y - box.h / 2}\
-				R90,#{x},#{y}r-135R45,#{startX},#{startY}s#{@table.cardSizeRatio}"
+			# y = startY - (Math.floor i / 2) * size - i * shift
+			# unless i % 2
+			# 	x = startX + (Math.round i / 2) * size + i * shift
+			# 	# y = startY - (Math.floor i / 2) * size - i * shift
+			# 	backTransform = "t#{x},#{y}R45,#{startX},#{startY}\
+			# 	s#{@table.cardSizeRatio},0,0" # чому решта навколо центру
+			# 	circleTransform = "t#{x + width / 2}
+			# 	,#{y + (height + width - shift) / 2}R45,#{startX},#{startY}\
+			# 	s#{@table.cardSizeRatio}"
+			# 	numberTransform = "t#{x + width / 2}
+			# 	,#{y + (height + width - shift) / 2 - box.y - box.h / 2}\
+			# 	r-45R45,#{startX},#{startY}s#{@table.cardSizeRatio}"
+			# else
+			# 	x = startX + width + (Math.round i / 2) * size + i * shift
+			# 	# y = startY - (Math.floor i / 2) * size - i * shift
+			# 	backTransform = "t#{x},#{y}r90,0,0R45,#{startX},#{startY}\
+			# 	s#{@table.cardSizeRatio},0,0"
+			# 	circleTransform = "t#{x + width / 2}
+			# 	,#{y + (height + width - shift) / 2}\
+			# 	R90,#{x},#{y}R45,#{startX},#{startY}\
+			# 	s#{@table.cardSizeRatio}"
+			# 	numberTransform = "t#{x + width / 2}
+			# 	,#{y + (height + width - shift) / 2 - box.y - box.h / 2}\
+			# 	R90,#{x},#{y}r-135R45,#{startX},#{startY}s#{@table.cardSizeRatio}"
 
 			# rect.transform backTransform
-			back.transform backTransform
-			circle.transform circleTransform
-			number.transform numberTransform
+			back.transform @getTrickCoords i
+			# circle.transform circleTransform
+			# number.transform numberTransform
 			backGroup.attr visibility: 'visible'
 
 Hand::getSortOrders = ->
@@ -222,11 +256,18 @@ Hand::mouseupCardToTrick = (e) ->
 			animClone.remove()
 			lastTrick.cards.push picked[0]
 			lastTrick.renderTrick()
-			lastTrick.animateTrickToHand() if lastTrick.cards.length is 3
-			hand.renderHand()
+			# if lastTrick.cards.length is 3
+				# console.log hand
+				#	ANIMATE WINNER HAND !!! NOT THE LAST IN THE TRICK!!!
+				# lastTrick.animateTrickToHand 5000, hand
+			# setTimeout (->
 			hand.bindMovesToTrick lastTrick.cards[0].suit #??????? не остання, завжди перша
+				# setTimeout (->
+			hand.renderHand()
+					# ), 200
+				# ), 5100
 			# animClone.remove() # видаляти лише в цьому випадку
-		), 301
+		), 310
 
 Hand::dragMoveCard = (dx, dy, x, y) ->
 	hand = @data 'hand'
@@ -285,6 +326,7 @@ Hand::dragEndCard = (e) ->
 				), 401
 
 Hand::bindMovesToTrick = (currentSuit) ->
+	self = @
 	lastTrick = @table.deal.tricks[(@table.deal.tricks.length - 1)]
 	switch lastTrick.cards.length
 		when 0
@@ -308,11 +350,17 @@ Hand::bindMovesToTrick = (currentSuit) ->
 			winnerHand.allowedSuit = null
 			cloneLastTrick = Object.create lastTrick
 			winnerHand.tricks.push cloneLastTrick
+			self.table.deal.firstHand = winnerHand.seat
+			self.table.deal.tricks.push new Trick @table, @pack
+			# setTimeout (->
+			# 	winnerHand.renderTricks() ), 4000
+			lastTrick.animateTrickToHand 5000, winnerHand
 			setTimeout (->
-				winnerHand.renderTricks() ), 4000
-			@table.deal.firstHand = winnerHand.seat
-			@table.deal.tricks.push new Trick @table, @pack
-			winnerHand.bindMovesToTrick()
+				winnerHand.renderTricks()
+				winnerHand.renderHand()
+
+				winnerHand.bindMovesToTrick()
+				), 5100
 
 Hand::renderHand = ->
 	if @cards.length

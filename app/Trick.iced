@@ -40,53 +40,64 @@ Trick::renderTrick = ->
 			"r#{@shiftsRotations["#{hand.seat}"].rotation}"
 			el.transform tr
 
-Trick::animateTrickToHand = ->
+Trick::animateTrickToHand = (animDuration, hand) ->
+	# console.log hand
 	self = @
 	if @cards.length is 3
+		# initializing back object
+		back = @table.snapArea.g()
 		# moves all 3 trick cards to heap
 		setTimeout (->
 			for el in self.trickGroup
 				el.stop()
 				.animate transform: "T#{self.table.coords.center.x}
 				,#{self.table.coords.north.y}S#{self.table.cardSizeRatio}R0"
-				, 400, mina.easein
-			), 400
+				, animDuration * .2, mina.easein
+			), animDuration * .2
 		# removes first two lower cards since there's no need of them
 		setTimeout (->
 				for el, i in self.trickGroup when i isnt 2
 					el.remove()
-			), 800
+			), animDuration * .4
 		# shrinks the remaining upper card, 1st phase of folding
 		setTimeout (->
 			self.trickGroup[2].stop()
 			.animate transform: "t#{self.table.coords.center.x}
 			,#{self.table.coords.north.y}s.0001
-			,#{self.table.cardSizeRatio}r0", 400
+			,#{self.table.cardSizeRatio}r0", animDuration * .2
 			# removes the last trick card
 			setTimeout (->
 				self.trickGroup[2].remove()
 				self.trickGroup = []
-				), 401
-			), 1200
+				), animDuration * .2 + 10
+			), animDuration * .6
 		# adds animating back
 		setTimeout (->
-			back = self.table.snapArea.g()
+			# back = self.table.snapArea.g()
 			back.add self.pack.backBlue.clone()
 			back.attr visibility: 'hidden'
-			back.transform "t0,0s1r0"
-			back.transform "t#{self.table.coords.center.x}
-			,#{self.table.coords.north.y}s.0001
-			,#{self.table.cardSizeRatio}r0"
+			# back.transform "s.0001,.0001t#{self.table.coords.center.x}
+			# ,#{self.table.coords.north.y}r0,0,0R0,0,0"
+			back.transform "s.0001,#{self.table.cardSizeRatio}r0\
+			T#{self.table.coords.center.x},#{self.table.coords.north.y}"
 
 			back.attr visibility:'visible'
-			back.stop().animate transform: "t#{self.table.coords.center.x}
-			,#{self.table.coords.north.y}s#{self.table.cardSizeRatio}
-			,#{self.table.cardSizeRatio}r0", 400
+			back.stop().animate transform: "s#{self.table.cardSizeRatio}
+			,#{self.table.cardSizeRatio}r0T#{self.table.coords.center.x}
+			,#{self.table.coords.north.y}", animDuration * .2
+			), animDuration * .8
+		# moves back to hand tricks
+		setTimeout (->
+			# console.log 'came here...'
+			# console.log "hand tricks count #{hand.tricks.length}"
+			tr = hand.getTrickCoords (hand.tricks.length - 1)
+			back.stop().animate transform: tr, animDuration * .2
+			# console.log "last anim tr #{back.transform().string}"
 			# removes back
-			setTimeout (->
-				back.remove()
-				), 1500
-			), 1600
+			# setTimeout (->
+			# 	back.remove()
+			# 	), animDuration * .2 + 10
+			), animDuration
 
 Trick::getRandoms = ->
 
