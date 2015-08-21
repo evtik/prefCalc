@@ -47,7 +47,6 @@ Hand::renderFanFrame = ->
 	@fanFrame.attr d: @fanFramePath
 
 Hand::getTrickCoords = (index) ->
-	# console.log @seat
 	startX = @table.coords[@seat].x
 	startY = @table.coords[@seat].y
 	height = @table.cardHeight
@@ -176,26 +175,10 @@ Hand::unSetHovers = ->
 	for el in @handGroup
 		el.unhover @hoverInCard, @hoverOutCard
 
-Hand::setMouseupsToCardRow = ->
-	for el in @handGroup
-		el.mouseup @mouseupCardToCardRow
-
-Hand::unSetMouseupsToCardRow = ->
-	for el in @handGroup
-		el.unmouseup @mouseupCardToCardRow
-
-Hand::setMouseupsToTrick = ->
+Hand::setDrags = ->
+	# if @table.appMode is 'dealing'
 	for el in @handGroup
 		unless (@allowedSuit and (el.data 'suit') isnt @allowedSuit)
-			el.mouseup @mouseupCardToTrick
-
-Hand::unSetMouseupsToTrick = ->
-	for el in @handGroup
-		el.unmouseup @mouseupCardToTrick
-
-Hand::setDrags = ->
-	if @table.appMode is 'dealing'
-		for el in @handGroup
 			el.drag @dragMoveCard, @dragStartCard, @dragEndCard
 
 Hand::unSetDrags = ->
@@ -210,141 +193,130 @@ Hand::hoverOutCard = ->
 	@stop().animate transform: "#{@data 'currentTransform'}t0
 	,0", 200, mina.backout
 
-Hand::mouseupCardToCardRow = ->
-	hand = @data 'hand'
-	if @ is hand.table.mouseDownCard and not hand.table.dragClone
-		picked = hand.cards.splice (@data 'handIndex'), 1
-		animClone = @clone()
-		@remove()
-		hand.table.snapArea.add animClone
-
-		animToRow = "t#{hand.table.coords.north.x},
-			#{hand.table.coords.lowerRow.y}
-			s#{hand.table.cardSizeRatio}" # а до цього було масштабування навколо 0,0
-		animClone.stop().animate transform: animToRow, 180, mina.backout
-		setTimeout (->
-			animClone.remove()
-			hand.table.cardRow.cards.push picked[0]
-			hand.table.cardRow.renderCardRow()
-			hand.renderHand()
-			for name, tableHand of hand.table.hands
-				tableHand.setHovers()
-			hand.setMouseupsToCardRow()
-			hand.setDrags()
-			), 200
-
-Hand::mouseupCardToTrick = (e) ->
-	hand = @data 'hand'
-	lastTrick = hand.table.deal.tricks[(hand.table.deal.tricks.length - 1)]
-	picked = hand.cards.splice (@data 'handIndex'), 1
-	currentTransform = @data 'currentTransform'
-	animClone = @clone()
-	hand.table.snapArea.add animClone
-	animClone.transform "t#{e.pageX - hand.pack.cardWidth / 2}," +
-	"#{e.pageY - hand.pack.cardHeight / 2}," +
-	"s#{hand.table.cardSizeRatio}"
-	@remove()
-	trickX = hand.table.coords.center.x -
-		lastTrick.shiftsRotations["#{hand.seat}"].shift.x
-	trickY = hand.table.coords.north.y -
-		lastTrick.shiftsRotations["#{hand.seat}"].shift.y
-	animToCenter = "t#{trickX},#{trickY}" +
-	"s#{hand.table.cardSizeRatio}" +
-	"r#{lastTrick.shiftsRotations["#{hand.seat}"].rotation}"
-	animClone.stop().animate transform: animToCenter, 300
-	setTimeout (->
-			animClone.remove()
-			lastTrick.cards.push picked[0]
-			lastTrick.renderTrick()
-			# if lastTrick.cards.length is 3
-				# console.log hand
-				#	ANIMATE WINNER HAND !!! NOT THE LAST IN THE TRICK!!!
-				# lastTrick.animateTrickToHand 5000, hand
-			# setTimeout (->
-			hand.bindMovesToTrick lastTrick.cards[0].suit #??????? не остання, завжди перша
-				# setTimeout (->
-			hand.renderHand()
-					# ), 200
-				# ), 5100
-			# animClone.remove() # видаляти лише в цьому випадку
-		), 310
-
 Hand::dragMoveCard = (dx, dy, x, y) ->
 	hand = @data 'hand'
 	if !hand.table.dragClone and (dx or dy)
 		hand.table.dragClone = @clone()
+		hand.table.mouseDownCard = null
 		hand.table.snapArea.add hand.table.dragClone
 		@attr visibility: 'hidden'
-		for name, tableHand of hand.table.hands when tableHand isnt hand
-				tableHand.fanFrame.attr visibility: 'visible'
-	hand.table.dragClone?.transform "t\
-	#{x - hand.table.pack.cardWidth / 2 }
-	,#{y - hand.table.pack.cardHeight / 2 }\
-	s#{hand.table.cardSizeRatio}"
+		if hand.table.appMode is 'dealing'
+			for name, tableHand of hand.table.hands when tableHand isnt hand
+					tableHand.fanFrame.attr visibility: 'visible'
+	if hand.table.appMode is 'dealing'
+		hand.table.dragClone?.transform "t\
+		#{x - hand.table.pack.cardWidth / 2 }
+		,#{y - hand.table.pack.cardHeight / 2 }\
+		s#{hand.table.cardSizeRatio}"
 
 Hand::dragStartCard = ->
 	hand = @data 'hand'
 	hand.table.mouseDownCard = @
-	hand.table.cardRow.unSetHovers()
+	hand.table.cardRow?.unSetHovers()
 	for name, tableHand of hand.table.hands
 		tableHand.unSetHovers()
 
 Hand::dragEndCard = (e) ->
 	card = @
 	hand = @data 'hand'
-	for name, tableHand of hand.table.hands when tableHand isnt hand
-		if Snap.path.isPointInside tableHand.fanFramePath, e.pageX, e.pageY
-			selectedHand = tableHand
-			break
-	if selectedHand
-		picked = hand.cards.splice (@data 'handIndex'), 1
-		picked[0].hand = selectedHand.seat
-		selectedHand.cards.push picked[0]
-		hand.table.dragClone.remove()
-		hand.table.dragClone = null
-		hand.renderHand()
-		selectedHand.renderHand()
-		for name, tableHand of hand.table.hands
-			tableHand.fanFrame.attr visibility: 'hidden'
-			tableHand.setHovers()
-			tableHand.setMouseupsToCardRow()
-			tableHand.setDrags()
-	else
-		if hand.table.dragClone
-			hand.table.dragClone.stop()
-			.animate transform: "#{@data 'currentTransform'}t0,0"
-			, 400, mina.backout
-			setTimeout (->
-				hand.table.dragClone.remove()
-				hand.table.dragClone = null
-				card.transform "#{card.data 'currentTransform'}t0,0"
-				card.attr visibility: 'visible'
-				hand.table.mouseDownCard = null
-				for name, tableHand in hand.table.hands
-					tableHand.fanFrame.attr visibility: 'hidden'
-					tableHand.setHovers()
-				), 401
+	unless hand.table.dragClone # handling "click"
+		if @ is hand.table.mouseDownCard
+			picked = hand.cards.splice (@data 'handIndex'), 1
+			animClone = @clone()
+			@remove()
+			hand.table.snapArea.add animClone
+			if hand.table.appMode is 'moving' # moving cards
+				lastTrick = hand.table.deal.tricks[(hand.table.deal.tricks.length - 1)]
+				currentTransform = @data 'currentTransform'
+				animClone.transform "t#{e.pageX - hand.pack.cardWidth / 2}," +
+				"#{e.pageY - hand.pack.cardHeight / 2}," +
+				"s#{hand.table.cardSizeRatio}"
+				trickX = hand.table.coords.center.x -
+					lastTrick.shiftsRotations["#{hand.seat}"].shift.x
+				trickY = hand.table.coords.north.y -
+					lastTrick.shiftsRotations["#{hand.seat}"].shift.y
+				animToCenter = "t#{trickX},#{trickY}" +
+				"s#{hand.table.cardSizeRatio}" +
+				"r#{lastTrick.shiftsRotations["#{hand.seat}"].rotation}"
+				animClone.stop().animate transform: animToCenter, 300
+				setTimeout (->
+						animClone.remove()
+						lastTrick.cards.push picked[0]
+						lastTrick.renderTrick()
+						hand.bindMovesToTrick lastTrick.cards[0].suit #??????? не остання, завжди перша
+						hand.renderHand()
+					), 310
+			else # dealing cards
+				animToRow = "t#{hand.table.coords.north.x},
+					#{hand.table.coords.lowerRow.y}
+					s#{hand.table.cardSizeRatio}" # а до цього було масштабування навколо 0,0
+				animClone.stop().animate transform: animToRow, 180, mina.backout
+				setTimeout (->
+					animClone.remove()
+					hand.table.cardRow.cards.push picked[0]
+					hand.table.cardRow.renderCardRow()
+					hand.renderHand()
+					for name, tableHand of hand.table.hands
+						tableHand.setHovers()
+					hand.setDrags()
+					), 200
+	else # handling drag
+		for name, tableHand of hand.table.hands when tableHand isnt hand
+			if Snap.path.isPointInside tableHand.fanFramePath, e.pageX, e.pageY
+				selectedHand = tableHand
+				break
+		if selectedHand # target exists
+			picked = hand.cards.splice (@data 'handIndex'), 1
+			picked[0].hand = selectedHand.seat
+			selectedHand.cards.push picked[0]
+			hand.table.dragClone.remove()
+			hand.table.dragClone = null
+			hand.renderHand()
+			selectedHand.renderHand()
+			for name, tableHand of hand.table.hands
+				tableHand.fanFrame.attr visibility: 'hidden'
+				tableHand.setHovers()
+				tableHand.setDrags()
+		else # no target
+			if hand.table.dragClone
+				hand.table.dragClone.stop()
+				.animate transform: "#{@data 'currentTransform'}t0,0"
+				, 400, mina.backout
+				setTimeout (->
+					hand.table.dragClone.remove()
+					hand.table.dragClone = null
+					card.transform "#{card.data 'currentTransform'}t0,0"
+					card.attr visibility: 'visible'
+					hand.table.mouseDownCard = null
+					for name, tableHand of hand.table.hands
+						tableHand.fanFrame.attr visibility: 'hidden'
+						tableHand.setHovers()
+					), 401
 
 Hand::bindMovesToTrick = (currentSuit) ->
 	self = @
 	lastTrick = @table.deal.tricks[(@table.deal.tricks.length - 1)]
 	switch lastTrick.cards.length
+		# there's no need to unset hovers for the hands
+		# that moves have been made from, e.g. for first
+		# hand after its move since Hand.unSetHovers was
+		# made for every hand on the table in Hand.dragStartCard;
+		# another trick is not to forget to setHovers for the
+		# third hand twice (the second time after the second's
+		# hand move) for the same reason
 		when 0
 			@table.hands["#{lastTrick.hands[0]}"].setHovers()
-			@table.hands["#{lastTrick.hands[0]}"].setMouseupsToTrick()
+			@table.hands["#{lastTrick.hands[0]}"].setDrags()
 		when 1
-			@table.hands["#{lastTrick.hands[0]}"].unSetHovers()
-			@table.hands["#{lastTrick.hands[0]}"].unSetMouseupsToTrick()
 			@table.hands["#{lastTrick.hands[1]}"].setHovers(currentSuit)
-			@table.hands["#{lastTrick.hands[1]}"].setMouseupsToTrick(currentSuit)
+			@table.hands["#{lastTrick.hands[1]}"].setDrags()
 			@table.hands["#{lastTrick.hands[2]}"].setHovers(currentSuit)
 		when 2
-			@table.hands["#{lastTrick.hands[1]}"].unSetHovers()
-			@table.hands["#{lastTrick.hands[1]}"].unSetMouseupsToTrick()
-			@table.hands["#{lastTrick.hands[2]}"].setMouseupsToTrick(currentSuit)
+			@table.hands["#{lastTrick.hands[1]}"].unSetDrags()
+			@table.hands["#{lastTrick.hands[2]}"].setHovers()
+			@table.hands["#{lastTrick.hands[2]}"].setDrags()
 		when 3
-			@table.hands["#{lastTrick.hands[2]}"].unSetHovers()
-			@table.hands["#{lastTrick.hands[2]}"].unSetMouseupsToTrick()
+			@table.hands["#{lastTrick.hands[2]}"].unSetDrags()
 			winner = lastTrick.getWinnerCard().hand
 			winnerHand = @table.hands["#{winner}"]
 			winnerHand.allowedSuit = null
@@ -352,15 +324,12 @@ Hand::bindMovesToTrick = (currentSuit) ->
 			winnerHand.tricks.push cloneLastTrick
 			self.table.deal.firstHand = winnerHand.seat
 			self.table.deal.tricks.push new Trick @table, @pack
-			# setTimeout (->
-			# 	winnerHand.renderTricks() ), 4000
-			lastTrick.animateTrickToHand 5000, winnerHand
+			lastTrick.animateTrickToHand 1000, winnerHand
 			setTimeout (->
 				winnerHand.renderTricks()
 				winnerHand.renderHand()
-
 				winnerHand.bindMovesToTrick()
-				), 5100
+				), 1200
 
 Hand::renderHand = ->
 	if @cards.length

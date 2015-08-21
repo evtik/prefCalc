@@ -41,7 +41,6 @@ Trick::renderTrick = ->
 			el.transform tr
 
 Trick::animateTrickToHand = (animDuration, hand) ->
-	# console.log hand
 	self = @
 	if @cards.length is 3
 		# initializing back object
@@ -88,15 +87,12 @@ Trick::animateTrickToHand = (animDuration, hand) ->
 			), animDuration * .8
 		# moves back to hand tricks
 		setTimeout (->
-			# console.log 'came here...'
-			# console.log "hand tricks count #{hand.tricks.length}"
 			tr = hand.getTrickCoords (hand.tricks.length - 1)
 			back.stop().animate transform: tr, animDuration * .2
-			# console.log "last anim tr #{back.transform().string}"
 			# removes back
-			# setTimeout (->
-			# 	back.remove()
-			# 	), animDuration * .2 + 10
+			setTimeout (->
+				back.remove()
+				), animDuration * .2 + 10
 			), animDuration
 
 Trick::getRandoms = ->

@@ -61,15 +61,14 @@ buttonPics[1].click ->
 	table.deal.firstHand = 'west'
 	table.deal.tricks.push new Trick table, pack
 	# console.log table.deal.tricks[table.deal.tricks.length - 1]
+	# console.log table.deal.tricks[0].hands
 	for hand in table.deal.tricks[0].hands
+		console.log 'removing handlers for ' + hand
 		table.hands["#{hand}"].unSetHovers()
-		# table["hand_#{hand}"].unbindHandCardsClicksToCardRow()
-		table.hands["#{hand}"].unSetMouseupsToCardRow()
 		table.hands["#{hand}"].unSetDrags()
 	# зняти оброблювачі з усіх рук!!!
 	table.hands["#{table.deal.firstHand}"].bindMovesToTrick()
 	buttonPics[1][0].attr fill: 'grey'
-	# table.cardRow.cardRowGroup.clear()
 	for el in table.cardRow.cardRowGroup
 		el.remove()
 	table.cardRow = null
@@ -91,7 +90,35 @@ startDealing()
 
 window.addEventListener 'resize', ->
 	table.getCoords window.innerWidth, window.innerHeight
+	table.cardRow?.renderCardRow()
+	lastTrick = table.deal?.tricks[table.deal.tricks.length - 1]
+	lastTrick?.renderTrick()
 	for name, hand of table.hands
 		hand.renderFanFrame()
 		hand.renderHand()
-	table.cardRow?.renderCardRow()
+		if appMode is 'dealing'
+			hand.setHovers()
+			# hand.setMouseupsToCardRow()
+			hand.setDrags()
+	if appMode is 'moving'
+		currentSuit = lastTrick.cards[0].suit
+		switch lastTrick.cards.length
+			# there's no need to unset event handlers
+			# as a hand's fan is built from scratch
+			when 0
+				# empty trick, setting for the 1st hand
+				table.hands["#{lastTrick.hands[0]}"].setHovers()
+				# table.hands["#{lastTrick.hands[0]}"].setMouseupsToTrick()
+				table.hands["#{lastTrick.hands[0]}"].setDrags()
+			when 1
+				# set for the the second and third
+				table.hands["#{lastTrick.hands[1]}"].setHovers()
+				# table.hands["#{lastTrick.hands[1]}"].setMouseupsToTrick(currentSuit)
+				table.hands["#{lastTrick.hands[1]}"].setDrags()
+				table.hands["#{lastTrick.hands[2]}"].setHovers(currentSuit)
+			when 2
+				# the 3rd
+				table.hands["#{lastTrick.hands[2]}"].setDrags()
+			# when 3
+				# suppose user'll have no time to resize till
+				# animation finishes
