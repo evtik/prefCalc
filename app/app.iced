@@ -73,8 +73,12 @@ buttonPics[1].click ->
 
 startDealing = ->
 	table.appMode = 'dealing'
-	for hand in table.hands
-		hand.cardRowGroup.clear()
+	for name, hand of table.hands
+		hand.handCardsCounter.remove()
+		for el in hand.handGroup
+			el.remove()
+		for el in hand.tricksGroup
+			el.remove()
 	table.cardRow = new CardRow table, pack
 	table.hands.west = new Hand table, pack, 'west', table.appMode
 	table.hands.east = new Hand table, pack, 'east', table.appMode

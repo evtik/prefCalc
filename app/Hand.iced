@@ -142,22 +142,20 @@ Hand::getSortOrders = ->
 			# @sortedUniqueSuits.push uniqueSuits[3] if uniqueSuits.length is 4
 
 Hand::getAllowedSuit = (currentSuit) ->
-	if currentSuit
-		@allowedSuit = null
-		if @table.appMode is 'moving'
-			handSuits = (card.suit for card in @cards)
-			uniqueHandSuits = handSuits.unique()
-			if uniqueHandSuits.exists currentSuit
-				@allowedSuit = currentSuit
-			else
-				if uniqueHandSuits.exists @table.deal.trump
-					@allowedSuit = @table.deal.trump
+	@allowedSuit = null
+	if @table.appMode is 'moving'
+		handSuits = (card.suit for card in @cards)
+		uniqueHandSuits = handSuits.unique()
+		if uniqueHandSuits.exists currentSuit
+			@allowedSuit = currentSuit
+		else
+			if uniqueHandSuits.exists @table.deal.trump
+				@allowedSuit = @table.deal.trump
 
 Hand::setHovers = (currentSuit) ->
-	if @table.appMode is 'moving'
+	if currentSuit and @table.appMode is 'moving'
 		lastTrick = @table.deal.tricks[(@table.deal.tricks.length - 1)]
-		if lastTrick.cards.length is 1# and @seat is lastTrick.hands[1]
-		# if lastTrick.cards.length is 1 and
+		if lastTrick.cards.length is 1
 			@getAllowedSuit currentSuit # достатньо зробити один раз для руки після 1-го ходу
 	for el in @handGroup
 		unless (@allowedSuit and (el.data 'suit') isnt @allowedSuit)
@@ -263,6 +261,7 @@ Hand::dragEndCard = (e) ->
 			selectedHand.cards.push picked[0]
 			hand.table.dragClone.remove()
 			hand.table.dragClone = null
+			hand.table.cardRow?.setHovers()
 			hand.renderHand()
 			selectedHand.renderHand()
 			for name, tableHand of hand.table.hands
