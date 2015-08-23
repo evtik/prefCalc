@@ -72,11 +72,8 @@ Trick::animateTrickToHand = (animDuration, hand) ->
 			), animDuration * .6
 		# adds animating back
 		setTimeout (->
-			# back = self.table.snapArea.g()
 			back.add self.pack.backBlue.clone()
 			back.attr visibility: 'hidden'
-			# back.transform "s.0001,.0001t#{self.table.coords.center.x}
-			# ,#{self.table.coords.north.y}r0,0,0R0,0,0"
 			back.transform "s.0001,#{self.table.cardSizeRatio}r0\
 			T#{self.table.coords.center.x},#{self.table.coords.north.y}"
 
@@ -88,8 +85,7 @@ Trick::animateTrickToHand = (animDuration, hand) ->
 		# moves back to hand tricks
 		setTimeout (->
 			tr = hand.getTrickCoords (hand.tricks.length - 1)
-			back.stop().animate transform: tr, animDuration * .2
-			# removes back
+			back.stop().animate transform: tr[2], animDuration * .2
 			setTimeout (->
 				back.remove()
 				), animDuration * .2 + 10

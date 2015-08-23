@@ -5,8 +5,6 @@ CardRow = require './CardRow'
 Trick = require './Trick'
 utils = require './utils'
 
-appMode = 'dealing'
-
 await pack = new Pack defer cards
 
 table = new Table window.innerWidth, window.innerHeight, pack
@@ -60,10 +58,7 @@ buttonPics[1].click ->
 	table.deal.trump = 'd'
 	table.deal.firstHand = 'west'
 	table.deal.tricks.push new Trick table, pack
-	# console.log table.deal.tricks[table.deal.tricks.length - 1]
-	# console.log table.deal.tricks[0].hands
 	for hand in table.deal.tricks[0].hands
-		console.log 'removing handlers for ' + hand
 		table.hands["#{hand}"].unSetHovers()
 		table.hands["#{hand}"].unSetDrags()
 	# зняти оброблювачі з усіх рук!!!
@@ -81,9 +76,9 @@ startDealing = ->
 	for hand in table.hands
 		hand.cardRowGroup.clear()
 	table.cardRow = new CardRow table, pack
-	table.hands.west = new Hand table, pack, 'west', appMode
-	table.hands.east = new Hand table, pack, 'east', appMode
-	table.hands.south = new Hand table, pack, 'south', appMode
+	table.hands.west = new Hand table, pack, 'west', table.appMode
+	table.hands.east = new Hand table, pack, 'east', table.appMode
+	table.hands.south = new Hand table, pack, 'south', table.appMode
 	null
 
 startDealing()
@@ -94,30 +89,45 @@ window.addEventListener 'resize', ->
 	lastTrick = table.deal?.tricks[table.deal.tricks.length - 1]
 	lastTrick?.renderTrick()
 	for name, hand of table.hands
-		hand.renderFanFrame()
+		if table.appMode is 'moving'
+			hand.renderTricks()
+
+		# no need to render fanFrame in 'moving' mode
+		# implemented not through "if...else..." since
+		# 1) tricks should be under a hands' cards
+		# so renderHand() should go after renderTricks()
+		# 2) in 'dealing' mode hovers and drags can be
+		# set right after rendering cards
+		# 3) though in 'moving' mode hovers/drags are
+		# set depending on the current trick's cards
+		# number
+
 		hand.renderHand()
-		if appMode is 'dealing'
+
+		if table.appMode is 'dealing'
+			hand.renderFanFrame()
 			hand.setHovers()
-			# hand.setMouseupsToCardRow()
 			hand.setDrags()
-	if appMode is 'moving'
-		currentSuit = lastTrick.cards[0].suit
+
+	if table.appMode is 'moving'
 		switch lastTrick.cards.length
 			# there's no need to unset event handlers
 			# as a hand's fan is built from scratch
+			# also no need to get allowed suit for a
+			# hand as it has been set upon first
+			# Hand.setHovers()
 			when 0
 				# empty trick, setting for the 1st hand
 				table.hands["#{lastTrick.hands[0]}"].setHovers()
-				# table.hands["#{lastTrick.hands[0]}"].setMouseupsToTrick()
 				table.hands["#{lastTrick.hands[0]}"].setDrags()
 			when 1
 				# set for the the second and third
 				table.hands["#{lastTrick.hands[1]}"].setHovers()
-				# table.hands["#{lastTrick.hands[1]}"].setMouseupsToTrick(currentSuit)
 				table.hands["#{lastTrick.hands[1]}"].setDrags()
-				table.hands["#{lastTrick.hands[2]}"].setHovers(currentSuit)
+				table.hands["#{lastTrick.hands[2]}"].setHovers()
 			when 2
 				# the 3rd
+				table.hands["#{lastTrick.hands[2]}"].setHovers()
 				table.hands["#{lastTrick.hands[2]}"].setDrags()
 			# when 3
 				# suppose user'll have no time to resize till

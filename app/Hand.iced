@@ -58,6 +58,7 @@ Hand::getTrickCoords = (index) ->
 	angle = Snap.deg Math.atan width / height
 	# getting the hypotenuse
 	hypo = (Math.sqrt ((Math.pow width, 2) + (Math.pow height, 2))) / 2
+	coords = [] # first two are cx and cy of the last trick, third is trstr
 	if @seat is 'south' # horizontal placement
 		xShift = hypo * Math.cos Snap.rad (-angle - 90 + 45)
 		shift = index * 2 * (xShift + offset)
@@ -67,6 +68,8 @@ Hand::getTrickCoords = (index) ->
 		else
 			tr = "s#{@table.cardSizeRatio},#{@table.cardSizeRatio}\
 			r-45T#{startX + shift},#{startY}"
+		coords.push (startX + shift + @pack.cardWidth / 2)
+		coords.push (startY + @pack.cardHeight / 2)
 	else # vertical placement
 		yShift = hypo * Math.sin Snap.rad (-270 + angle + 45)
 		shift = index * 2 * (yShift + offset)
@@ -76,60 +79,47 @@ Hand::getTrickCoords = (index) ->
 		else
 			tr = "s#{@table.cardSizeRatio},#{@table.cardSizeRatio}\
 			r-45T#{startX},#{startY + shift}"
-	tr
+		coords.push (startX + @pack.cardWidth / 2)
+		coords.push (startY + shift + @pack.cardHeight / 2)
+	coords.push tr
+	coords
 
 Hand::renderTricks = ->
+	if @tricksGroup.length
+		for t in @tricksGroup
+			t.remove()
+		@tricksGroup = []
+
 	if @tricks.length
-		# self = @
-		# height = @table.cardHeight
-		# width = @table.cardWidth
-		# size = height - width
-		# shift = height * .2
-		# startX = @table.coords[@seat].x
-		# startY = @table.coords[@seat].y
 		for trick, i in @tricks
 			backGroup = @table.snapArea.g().attr visibility:'hidden'
-			# rect = @table.snapArea.rect 0,0, width, height
-			# 	.attr fill: 'transparent', stroke:'red'
 			back = @table.snapArea.g().add @pack.backBlue.clone()
-			# circle = @table.snapArea.circle 0,0, size * .6
-			# 	.attr fill: 'white', stroke: 'black', strokeWidth: 1
-			# number = @table.snapArea.text 0,0, i + 1
-			# 	.attr fill:'black', 'font-size': size * .8, 'text-anchor': 'middle'
-			# box = number.getBBox()
-			# backGroup.add back, circle, number
 			backGroup.add back
 
-			# y = startY - (Math.floor i / 2) * size - i * shift
-			# unless i % 2
-			# 	x = startX + (Math.round i / 2) * size + i * shift
-			# 	# y = startY - (Math.floor i / 2) * size - i * shift
-			# 	backTransform = "t#{x},#{y}R45,#{startX},#{startY}\
-			# 	s#{@table.cardSizeRatio},0,0" # чому решта навколо центру
-			# 	circleTransform = "t#{x + width / 2}
-			# 	,#{y + (height + width - shift) / 2}R45,#{startX},#{startY}\
-			# 	s#{@table.cardSizeRatio}"
-			# 	numberTransform = "t#{x + width / 2}
-			# 	,#{y + (height + width - shift) / 2 - box.y - box.h / 2}\
-			# 	r-45R45,#{startX},#{startY}s#{@table.cardSizeRatio}"
-			# else
-			# 	x = startX + width + (Math.round i / 2) * size + i * shift
-			# 	# y = startY - (Math.floor i / 2) * size - i * shift
-			# 	backTransform = "t#{x},#{y}r90,0,0R45,#{startX},#{startY}\
-			# 	s#{@table.cardSizeRatio},0,0"
-			# 	circleTransform = "t#{x + width / 2}
-			# 	,#{y + (height + width - shift) / 2}\
-			# 	R90,#{x},#{y}R45,#{startX},#{startY}\
-			# 	s#{@table.cardSizeRatio}"
-			# 	numberTransform = "t#{x + width / 2}
-			# 	,#{y + (height + width - shift) / 2 - box.y - box.h / 2}\
-			# 	R90,#{x},#{y}r-135R45,#{startX},#{startY}s#{@table.cardSizeRatio}"
+			trArr = @getTrickCoords i
+			back.transform trArr[2]
 
-			# rect.transform backTransform
-			back.transform @getTrickCoords i
-			# circle.transform circleTransform
-			# number.transform numberTransform
+			if i is (@tricks.length - 1) # the last trick
+				size = @table.cardHeight - @table.cardWidth
+				circle = @table.snapArea.circle 0,0
+				, (@table.cardHeight - @table.cardWidth) * .6
+					.attr fill: 'white', stroke: 'black', strokeWidth: 1
+				number = @table.snapArea.text 0, size * .8 / 2, i + 1
+					.attr fill:'black', 'font-size': size * .8
+					, 'text-anchor': 'middle'
+
+				# aligning number of tricks vertically
+				box = number.getBBox()
+				alignTr = "t0,-#{box.y + box.h / 2}"
+
+				lastTrickCenter = "t#{trArr[0]},#{trArr[1]}"
+				circle.transform lastTrickCenter
+				number.transform "#{lastTrickCenter}#{alignTr}"
+				backGroup.add circle, number
+
 			backGroup.attr visibility: 'visible'
+
+			@tricksGroup.push backGroup
 
 Hand::getSortOrders = ->
 	sameColors = ['d', 'h']
@@ -152,20 +142,22 @@ Hand::getSortOrders = ->
 			# @sortedUniqueSuits.push uniqueSuits[3] if uniqueSuits.length is 4
 
 Hand::getAllowedSuit = (currentSuit) ->
-	@allowedSuit = null
-	if @table.appMode is 'moving'
-		handSuits = (card.suit for card in @cards)
-		uniqueHandSuits = handSuits.unique()
-		if uniqueHandSuits.exists currentSuit
-			@allowedSuit = currentSuit
-		else
-			if uniqueHandSuits.exists @table.deal.trump
-				@allowedSuit = @table.deal.trump
+	if currentSuit
+		@allowedSuit = null
+		if @table.appMode is 'moving'
+			handSuits = (card.suit for card in @cards)
+			uniqueHandSuits = handSuits.unique()
+			if uniqueHandSuits.exists currentSuit
+				@allowedSuit = currentSuit
+			else
+				if uniqueHandSuits.exists @table.deal.trump
+					@allowedSuit = @table.deal.trump
 
 Hand::setHovers = (currentSuit) ->
 	if @table.appMode is 'moving'
 		lastTrick = @table.deal.tricks[(@table.deal.tricks.length - 1)]
 		if lastTrick.cards.length is 1# and @seat is lastTrick.hands[1]
+		# if lastTrick.cards.length is 1 and
 			@getAllowedSuit currentSuit # достатньо зробити один раз для руки після 1-го ходу
 	for el in @handGroup
 		unless (@allowedSuit and (el.data 'suit') isnt @allowedSuit)
