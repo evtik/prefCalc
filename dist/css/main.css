@@ -1,0 +1,57 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  background: url("../dark_blue.png");
+  background-repeat: repeat;
+  overflow: hidden;
+}
+body.context {
+  cursor: crosshair;
+}
+.hide {
+  display: none;
+}
+.radialnav.cardsCounter {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+.radialnav-sector {
+  fill: rgba(255,255,255,0.3);
+  stroke: rgba(255,255,255,0.1);
+  stroke-width: 1;
+  transition: all 0.4s;
+}
+.radialnav-sector.active {
+  fill: rgba(255,255,255,0.9);
+}
+.radialnav-icon {
+  pointer-events: none;
+  fill: #eee;
+  transition: all 0.4s;
+}
+.radialnav-icon.active {
+  fill: #333;
+}
+.radialnav-hint {
+  fill: #eee;
+  font: bold 0.95em 'PT Sans', Arial, sans-serif;
+  text-anchor: middle;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: all 0.4s;
+}
+.radialnav-hint.active {
+  opacity: 1;
+}
+.fanFrameDragIn {
+  stroke: #0f0;
+}

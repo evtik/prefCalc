@@ -92,7 +92,7 @@ Trick::animateTrickToHand = (animDuration, hand) ->
 			), animDuration
 
 Trick::getRandoms = ->
-
+	# think using @table.cardWidth/Height instead!!! bad looking on different screen sizes
 	@shiftsRotations.west = # було зміщення .15, зараз .35
 		rotation: (utils.getRandomInt 1, 5) * 360 - 54 - (utils.getRandomInt 0, 9) * 1.5
 		shift:
