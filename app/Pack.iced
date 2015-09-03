@@ -18,16 +18,16 @@ Pack::getPack = (cb) ->
 	await
 		Snap.load "cards/back_blue.svg", defer back_blue
 		Snap.load "cards/back_red.svg", defer back_red
-		Snap.load "cards/club.svg", defer club_card
-		Snap.load "cards/diamond.svg", defer diamond_card
-		Snap.load "cards/heart.svg", defer heart_card
-		Snap.load "cards/spade.svg", defer spade_card
+		Snap.load "cards/clubs.svg", defer clubs_card
+		Snap.load "cards/diamonds.svg", defer diamonds_card
+		Snap.load "cards/hearts.svg", defer hearts_card
+		Snap.load "cards/spades.svg", defer spades_card
 	@backBlue = back_blue.select('svg')
 	@backRed = back_red.select('svg')
-	@club = club_card.select('svg')
-	@diamond = diamond_card.select('svg')
-	@heart = heart_card.select('svg')
-	@spade = spade_card.select('svg')
+	@clubs = clubs_card.select('svg')
+	@diamonds = diamonds_card.select('svg')
+	@hearts = hearts_card.select('svg')
+	@spades = spades_card.select('svg')
 	# getBBox ???? and ...pic: cardPic.select('svg') ???
 	@cardWidth = @cards[0].pic.node.children[0].attributes.width.value
 	@cardHeight = @cards[0].pic.node.children[0].attributes.height.value

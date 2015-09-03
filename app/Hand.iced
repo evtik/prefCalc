@@ -3,7 +3,7 @@ utils = require './utils'
 Trick = require './Trick'
 
 class Hand
-	constructor: (@table, @pack, @seat, @cards, @isBlind, @isWidow) ->
+	constructor: (@toolBar, @table, @pack, @seat, @cards, @isBlind, @isWidow) ->
 		@shiftAngle = 12
 		# випадкове сортування за зростанням або убуванням
 		# номіналу карти на період "життя" руки
@@ -323,6 +323,34 @@ Hand::bindMovesToTrick = (currentSuit) ->
 				), 1200
 
 Hand::renderHand = ->
+	# setting 'start' button active/inactive
+	if @table.appMode is 'dealing'
+		if @cards.length
+			# compare hands' cards' number
+			numbers = []
+			for n, h of @table.hands
+				numbers.push h.cards.length
+			areTheSame = yes
+			for el, i in numbers
+				if numbers[i + 1] >= 0 # if next el exists
+				# cannot use if numbers[i + 1] as cards num can be 0
+				# which gives 'false'
+					if el isnt numbers[i + 1]
+						areTheSame = no
+						break
+			# if numbers.length is 3 and areTheSame # there always three playing hands
+			if areTheSame
+				@toolBar.buttons.start[0].attr fill: 'white'
+				@toolBar.buttons.start.data 'isActive', yes
+			else
+				if @toolBar.buttons.start.data 'isActive'
+					@toolBar.buttons.start[0].attr fill: '#444'
+					@toolBar.buttons.start.data 'isActive', no
+		else
+			if @toolBar.buttons.start.data 'isActive'
+				@toolBar.buttons.start[0].attr fill: '#444'
+				@toolBar.buttons.start.data 'isActive', no
+
 	if @cards.length
 		for el in @handGroup
 			el.remove()
@@ -366,4 +394,3 @@ Hand::renderHand = ->
 		@handCardsCounter.attr visibility: 'hidden'
 
 module.exports = Hand
-
