@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: IcoMoon.io -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Layer_1"
+   x="0px"
+   y="0px"
+   width="48px"
+   height="48px"
+   viewBox="0 0 48 48"
+   enable-background="new 0 0 16 16"
+   xml:space="preserve"
+   fill="#000000"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="diamonds.svg"><metadata
+     id="metadata9"><rdf:RDF><cc:Work
+         rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+     id="defs7" /><sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1280"
+     inkscape:window-height="972"
+     id="namedview5"
+     showgrid="false"
+     inkscape:zoom="4.9166667"
+     inkscape:cx="-12.101695"
+     inkscape:cy="23.79661"
+     inkscape:window-x="1352"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1" /><path
+     inkscape:connector-curvature="0"
+     id="path3692"
+     d="M 6.6579246,24.176122 C 14.407256,16.614647 19.479549,8.3956519 24.340501,0.48193419 28.614379,9.1940685 34.719914,16.825992 41.342075,24.176122 34.273739,31.479285 28.778756,39.299071 24.363987,47.518066 19.456071,39.087726 14.313328,31.455802 6.6579246,24.176122 Z"
+     style="fill:#d40000" /></svg>
